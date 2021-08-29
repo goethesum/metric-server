@@ -19,7 +19,7 @@ type Metric struct {
 	Value string
 }
 
-func (m Metric) NewSendUrl() (string, error) {
+func (m Metric) NewSendURL() (string, error) {
 	params := url.Values{}
 	params.Add("id", m.ID)
 	params.Add("type", string(m.Type))

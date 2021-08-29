@@ -33,7 +33,7 @@ type clientHTTP struct {
 // Calls NewSenUrl to construct encoded URL
 func (client *clientHTTP) MetricSend(ctx context.Context, metrics metrics.Metric) error {
 	endpoint := config.Server + config.URLMetricPush
-	url, err := metrics.NewSendUrl()
+	url, err := metrics.NewSendURL()
 	if err != nil {
 		return fmt.Errorf("unable to parse url:%w", err)
 	}

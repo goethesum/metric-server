@@ -23,10 +23,6 @@ func main() {
 	repo := handlers.NewRepo(e)
 	handlers.NewHandlers(repo)
 
-	// mux := http.NewServeMux()
-	// mux.HandleFunc("/push", handlers.Repo.PostHandlerMetrics)
-	// mux.HandleFunc("/", handlers.Repo.GetMetrics)
-
 	server := &http.Server{
 		Addr:    e.PortNumber,
 		Handler: router(e),
@@ -51,7 +47,7 @@ func main() {
 
 func router(e *env.Env) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/push", handlers.Repo.PostHandlerMetrics)
+	mux.HandleFunc("/update", handlers.Repo.PostHandlerMetrics)
 	mux.HandleFunc("/", handlers.Repo.GetMetrics)
 
 	return mux

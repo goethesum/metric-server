@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -40,7 +39,7 @@ func (e *Repository) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) 
 		Type:  r.Form.Get("type"),
 		Value: r.Form.Get("value"),
 	}
-	fmt.Println(e.E.Data[r.Form.Get("id")])
+	//fmt.Println(e.E.Data[r.Form.Get("id")])
 
 }
 

@@ -18,11 +18,13 @@ import (
 type Config struct {
 	Server        string
 	URLMetricPush string
+	timeInterval  time.Duration
 }
 
 var config = Config{
 	Server:        "http://localhost:8080/",
-	URLMetricPush: "push",
+	URLMetricPush: "update",
+	timeInterval:  5,
 }
 
 type clientHTTP struct {
@@ -30,7 +32,7 @@ type clientHTTP struct {
 }
 
 // MetricSend takes Server address and relative path from config struct
-// Calls NewSenUrl to construct encoded URL
+// Calls NewSendUrl to construct encoded URL
 func (client *clientHTTP) MetricSend(ctx context.Context, metrics metrics.Metric) error {
 	endpoint := config.Server + config.URLMetricPush
 	url, err := metrics.NewSendURL()
@@ -42,7 +44,6 @@ func (client *clientHTTP) MetricSend(ctx context.Context, metrics metrics.Metric
 		SetHeader("Content-Length", strconv.Itoa(len(url))).
 		SetBody(url).
 		Post(endpoint)
-	fmt.Println(resp.StatusCode())
 	if err != nil {
 		return fmt.Errorf("unable to send POST request:%w", err)
 	}
@@ -66,7 +67,7 @@ func main() {
 	}
 
 	// Create Ticker
-	tick := time.NewTicker(5 * time.Second)
+	tick := time.NewTicker(config.timeInterval * time.Second)
 	defer tick.Stop()
 	done := make(chan bool)
 

@@ -56,6 +56,7 @@ func TestHandlers(t *testing.T) {
 			h := http.HandlerFunc(Repo.GetMetrics)
 			h.ServeHTTP(w, request)
 			resp := w.Result()
+			defer resp.Body.Close()
 
 			if resp.StatusCode != tt.expectedStatusCode {
 				t.Errorf("for %s, expected %d but got %d", tt.name, tt.expectedStatusCode, resp.StatusCode)
@@ -76,6 +77,7 @@ func TestHandlers(t *testing.T) {
 			h.ServeHTTP(w, request)
 
 			resp := w.Result()
+			defer resp.Body.Close()
 			if resp.StatusCode != tt.expectedStatusCode {
 				t.Errorf("for %s, expected %d but got %d", tt.name, tt.expectedStatusCode, resp.StatusCode)
 			}

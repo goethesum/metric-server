@@ -27,17 +27,20 @@ var config = Config{
 	timeInterval:  5,
 }
 
+type HttpClient interface {
+	MetricSend(ctx context.Context, metrics metrics.Metric) error
+}
+
 type clientHTTP struct {
 	client resty.Client
 }
 
 // MetricSend takes Server address and relative path from config struct
 // Calls NewSendUrl to construct encoded URL
-func (client *clientHTTP) MetricSend(ctx context.Context, metrics metrics.Metric) error {
-	endpoint := config.Server + config.URLMetricPush
+func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metrics metrics.Metric) (*resty.Response, error) {
 	url, err := metrics.NewSendURL()
 	if err != nil {
-		return fmt.Errorf("unable to parse url:%w", err)
+		return nil, fmt.Errorf("unable to parse url:%w", err)
 	}
 	resp, err := client.client.R().
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
@@ -45,13 +48,13 @@ func (client *clientHTTP) MetricSend(ctx context.Context, metrics metrics.Metric
 		SetBody(url).
 		Post(endpoint)
 	if err != nil {
-		return fmt.Errorf("unable to send POST request:%w", err)
+		return nil, fmt.Errorf("unable to send POST request:%w", err)
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("status cod [%d]: %s", resp.StatusCode(), string(resp.Body()))
+		return nil, fmt.Errorf("status cod [%d]: %s", resp.StatusCode(), string(resp.Body()))
 	}
 
-	return nil
+	return resp, nil
 }
 
 func main() {
@@ -60,12 +63,13 @@ func main() {
 	client := &clientHTTP{
 		client: *resty.New(),
 	}
-	//init metricStorage
+	// init metricStorage
 	mStorage := &metrics.MetricsStorage{
 		Stats: runtime.MemStats{},
 		Data:  make(map[string]metrics.Metric),
 	}
-
+	// make endpoint
+	endpoint := config.Server + config.URLMetricPush
 	// Create Ticker
 	tick := time.NewTicker(config.timeInterval * time.Second)
 	defer tick.Stop()
@@ -90,10 +94,11 @@ func main() {
 		case <-tick.C:
 			mStorage.PopulateMetricStruct()
 			for _, v := range mStorage.Data {
-				err := client.MetricSend(context.Background(), v)
+				resp, err := client.MetricSend(context.Background(), endpoint, v)
 				if err != nil {
 					fmt.Println(fmt.Errorf("unable to send POST request(ticker):%w", err))
 				}
+				log.Println(resp.StatusCode())
 			}
 
 		}

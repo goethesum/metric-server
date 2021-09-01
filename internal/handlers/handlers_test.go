@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/env"
+	"github.com/stretchr/testify/mock"
 )
 
 type postData struct {
@@ -51,13 +51,13 @@ func TestHandlers(t *testing.T) {
 	defer ts.Close()
 
 	for _, tt := range theTests {
-		fmt.Println(ts.URL + tt.url)
 		if tt.method == "GET" {
 			request := httptest.NewRequest("GET", tt.url, nil)
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(Repo.GetMetrics)
 			h.ServeHTTP(w, request)
 			resp := w.Result()
+
 			if resp.StatusCode != tt.expectedStatusCode {
 				t.Errorf("for %s, expected %d but got %d", tt.name, tt.expectedStatusCode, resp.StatusCode)
 			}
@@ -67,17 +67,38 @@ func TestHandlers(t *testing.T) {
 			for _, a := range tt.params {
 				values.Add(a.key, a.value)
 			}
+
 			buf := new(bytes.Buffer)
 			buf.WriteString(values.Encode())
 			request := httptest.NewRequest("POST", tt.url, buf)
+
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(Repo.PostHandlerMetrics)
 			h.ServeHTTP(w, request)
-			resp := w.Result()
 
+			resp := w.Result()
 			if resp.StatusCode != tt.expectedStatusCode {
 				t.Errorf("for %s, expected %d but got %d", tt.name, tt.expectedStatusCode, resp.StatusCode)
 			}
+
+			// if assert.NotNil(t, Repo.E.Data) {
+			// 	assert.Equal(t, "testMetric", Repo.E.Data["testMetric"].ID)
+			// }
+
 		}
 	}
+}
+
+type RepositoryMock struct {
+	mock.Mock
+}
+
+func (m *RepositoryMock) GetUserBy(id string) (string, error) {
+	args := m.Called(id)
+	return args.String(0), args.Error(1)
+
+}
+func TestHandlersMock(*testing.T) {
+	repoMock := new(RepositoryMock)
+	repoMock.On("GetUserBy", "user1").Return("name", nil)
 }

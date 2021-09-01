@@ -9,6 +9,11 @@ import (
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/env"
 )
 
+type Repositry interface {
+	PostHandlerMetrics(w http.ResponseWriter, r *http.Request)
+	GetMetrics(w http.ResponseWriter, r *http.Request)
+}
+
 // Repository is the repository type
 type Repository struct {
 	E *env.Env
@@ -17,7 +22,7 @@ type Repository struct {
 // Repo the repository used by the handlers
 var Repo *Repository
 
-// Repository is the repository type
+// NewRepois returns reference to Repository struct
 func NewRepo(e *env.Env) *Repository {
 	return &Repository{
 		E: e,
@@ -29,6 +34,7 @@ func NewHandlers(r *Repository) {
 	Repo = r
 }
 
+// PostHandlerMetrics parses form from POST request and assigns data to cache
 func (e *Repository) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -39,7 +45,6 @@ func (e *Repository) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) 
 		Type:  r.Form.Get("type"),
 		Value: r.Form.Get("value"),
 	}
-	//fmt.Println(e.E.Data[r.Form.Get("id")])
 
 }
 

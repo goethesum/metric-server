@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/env"
 )
@@ -50,10 +49,13 @@ func (e *Repository) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) 
 
 // Return metric data in JSON by Requested URI
 func (e *Repository) GetMetrics(w http.ResponseWriter, r *http.Request) {
-	key := strings.TrimPrefix(r.RequestURI, "/")
+
+	key := r.URL.Query().Get("id")
+
 	jsonMetric, err := json.Marshal(e.E.Data[key])
 	if err != nil {
 		log.Fatalf("unable to marshal the struct %s", err)
 	}
 	w.Write(jsonMetric)
+
 }

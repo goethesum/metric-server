@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/env"
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/handlers"
 )
@@ -46,9 +48,15 @@ func main() {
 }
 
 func router(e *env.Env) http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/update", handlers.Repo.PostHandlerMetrics)
-	mux.HandleFunc("/", handlers.Repo.GetMetrics)
+	mux := chi.NewRouter()
+
+	mux.Use(middleware.Recoverer)
+
+	mux.Get("/", handlers.Repo.GetMetrics)
+	mux.Post("/update", handlers.Repo.PostHandlerMetrics)
+
+	// mux.HandleFunc("/update", handlers.Repo.PostHandlerMetrics)
+	// mux.HandleFunc("/", handlers.Repo.GetMetrics)
 
 	return mux
 }

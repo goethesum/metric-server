@@ -98,7 +98,9 @@ func main() {
 				if err != nil {
 					fmt.Println(fmt.Errorf("unable to send POST request(ticker):%w", err))
 				}
-				log.Println(resp.StatusCode())
+				if resp != nil {
+					log.Println(resp.StatusCode(), v.ID)
+				}
 			}
 
 		}

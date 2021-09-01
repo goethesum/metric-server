@@ -27,7 +27,7 @@ var config = Config{
 	timeInterval:  5,
 }
 
-type HttpClient interface {
+type HTTPClient interface {
 	MetricSend(ctx context.Context, metrics metrics.Metric) error
 }
 

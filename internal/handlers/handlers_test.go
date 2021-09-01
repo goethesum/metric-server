@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/env"
-	"github.com/stretchr/testify/mock"
 )
 
 type postData struct {
@@ -89,16 +88,16 @@ func TestHandlers(t *testing.T) {
 	}
 }
 
-type RepositoryMock struct {
-	mock.Mock
-}
+// type RepositoryMock struct {
+// 	mock.Mock
+// }
 
-func (m *RepositoryMock) GetUserBy(id string) (string, error) {
-	args := m.Called(id)
-	return args.String(0), args.Error(1)
+// func (m *RepositoryMock) GetUserBy(id string) (string, error) {
+// 	args := m.Called(id)
+// 	return args.String(0), args.Error(1)
 
-}
-func TestHandlersMock(*testing.T) {
-	repoMock := new(RepositoryMock)
-	repoMock.On("GetUserBy", "user1").Return("name", nil)
-}
+// }
+// func TestHandlersMock(*testing.T) {
+// 	repoMock := new(RepositoryMock)
+// 	repoMock.On("GetUserBy", "user1").Return("name", nil)
+// }

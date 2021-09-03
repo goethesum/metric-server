@@ -7,27 +7,28 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/goethesum/-go-musthave-devops-tpl/internal/env"
-	"github.com/goethesum/-go-musthave-devops-tpl/internal/handlers"
+	"github.com/goethesum/-go-musthave-devops-tpl/internal/config"
+	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
+
+var confServ *config.ConfigServer
 
 func main() {
 
 	// Setup environmet
-	e := &env.Env{
+	confServ = &config.ConfigServer{
 		PortNumber: ":8080",
-		Data:       make(map[string]env.MetricServer),
+		Storage:    make(map[string]metric.Metric),
+		Mutex:      &sync.Mutex{},
 	}
 
-	repo := handlers.NewRepo(e)
-	handlers.NewHandlers(repo)
-
 	server := &http.Server{
-		Addr:    e.PortNumber,
-		Handler: router(e),
+		Addr:    confServ.PortNumber,
+		Handler: router(confServ),
 	}
 
 	// Handling signal, waiting for graceful shutdown
@@ -42,21 +43,19 @@ func main() {
 
 	}()
 
-	fmt.Println("Starting on port:", e.PortNumber)
+	log.Println("Starting on port:", confServ.PortNumber)
 	log.Fatal(server.ListenAndServe())
 
 }
 
-func router(e *env.Env) http.Handler {
+func router(cs *config.ConfigServer) http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Use(middleware.Recoverer)
 
-	mux.Get("/", handlers.Repo.GetMetrics)
-	mux.Post("/update", handlers.Repo.PostHandlerMetrics)
-
-	// mux.HandleFunc("/update", handlers.Repo.PostHandlerMetrics)
-	// mux.HandleFunc("/", handlers.Repo.GetMetrics)
+	mux.Get("/", cs.GetMetricsAll)
+	mux.Get("/metric", cs.GetMetrics)
+	mux.Post("/update", cs.PostHandlerMetrics)
 
 	return mux
 }

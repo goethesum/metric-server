@@ -8,45 +8,47 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
+	"github.com/goethesum/-go-musthave-devops-tpl/internal/config"
+	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
-type Config struct {
-	Server        string
-	URLMetricPush string
-	timeInterval  time.Duration
+var conf = config.ConfigAgent{
+	Server:        getEnv("SERVER_ADDR", "http://localhost:8080/"),
+	URLMetricPush: getEnv("URL_PATH", "update"),
+	TimeInterval:  5,
 }
 
-var config = Config{
-	Server:        "http://localhost:8080/",
-	URLMetricPush: "update",
-	timeInterval:  5,
-}
+// "http://localhost:8080/"
 
 type HTTPClient interface {
-	MetricSend(ctx context.Context, metrics metrics.Metric) error
+	MetricSend(ctx context.Context, metrics metric.Metric) error
 }
 
 type clientHTTP struct {
 	client resty.Client
 }
 
+// Looks up for ENV variables, returns default if it doesn't exist
+func getEnv(key string, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+
+	return defaultVal
+}
+
 // MetricSend takes Server address and relative path from config struct
 // Calls NewSendUrl to construct encoded URL
-func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metrics metrics.Metric) (*resty.Response, error) {
+func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metrics metric.Metric) (*resty.Response, error) {
 	url, err := metrics.NewSendURL()
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse url:%w", err)
 	}
 	resp, err := client.client.R().
-		SetHeader("Content-Type", "application/x-www-form-urlencoded").
-		SetHeader("Content-Length", strconv.Itoa(len(url))).
-		SetBody(url).
-		Post(endpoint)
+		Post(endpoint + "?" + url)
 	if err != nil {
 		return nil, fmt.Errorf("unable to send POST request:%w", err)
 	}
@@ -63,15 +65,17 @@ func main() {
 	client := &clientHTTP{
 		client: *resty.New(),
 	}
-	// init metricStorage
-	mStorage := &metrics.MetricsStorage{
+
+	//
+	mStorage := &metric.AgentStorage{
 		Stats: runtime.MemStats{},
-		Data:  make(map[string]metrics.Metric),
+		Data:  make(map[string]metric.Metric),
 	}
+
 	// make endpoint
-	endpoint := config.Server + config.URLMetricPush
+	endpoint := conf.Server + conf.URLMetricPush
 	// Create Ticker
-	tick := time.NewTicker(config.timeInterval * time.Second)
+	tick := time.NewTicker(conf.TimeInterval * time.Second)
 	defer tick.Stop()
 	done := make(chan bool)
 

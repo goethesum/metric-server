@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
+	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,7 +18,7 @@ type MetricMock struct {
 	mock.Mock
 }
 
-func (m *MetricMock) MetricSend(ctx context.Context, metrics metrics.Metric) error {
+func (m *MetricMock) MetricSend(ctx context.Context, metrics metric.Metric) error {
 	return nil
 }
 
@@ -25,13 +26,12 @@ func TestMetricSend(t *testing.T) {
 	testClient := &clientHTTP{
 		client: *resty.New(),
 	}
-	testMetric := &metrics.Metric{
+	testMetric := &metric.Metric{
 		ID:    "test",
-		Type:  metrics.MetricTypeCounter,
+		Type:  metric.MetricTypeCounter,
 		Value: "4321",
 	}
 
-	// m := new(MetricMock)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, http.StatusOK)
 	}))

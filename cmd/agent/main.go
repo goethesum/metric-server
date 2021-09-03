@@ -66,7 +66,7 @@ func main() {
 		client: *resty.New(),
 	}
 
-	//
+	// Stores agent data
 	mStorage := &metric.AgentStorage{
 		Stats: runtime.MemStats{},
 		Data:  make(map[string]metric.Metric),

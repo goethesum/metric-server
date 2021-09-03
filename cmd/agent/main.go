@@ -47,7 +47,9 @@ func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metri
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse url:%w", err)
 	}
-	resp, err := client.client.R().
+
+	resp, err := client.client.SetTimeout(1 * time.Second).
+		R().
 		Post(endpoint + "?" + url)
 	if err != nil {
 		return nil, fmt.Errorf("unable to send POST request:%w", err)
@@ -110,7 +112,6 @@ func main() {
 				}
 				if resp != nil {
 					log.Println(resp.StatusCode(), v.ID)
-					log.Println(resp.StatusCode())
 				}
 			}
 

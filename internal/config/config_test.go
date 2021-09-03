@@ -62,7 +62,6 @@ func TestHandlerGet(t *testing.T) {
 	defer ts.Close()
 
 	request := httptest.NewRequest("GET", theTestsGet.url, nil)
-	log.Println(request)
 	w := httptest.NewRecorder()
 	h := http.HandlerFunc(testCs.GetMetricsAll)
 	h.ServeHTTP(w, request)

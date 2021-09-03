@@ -18,7 +18,7 @@ import (
 var conf = config.ConfigAgent{
 	Server:        getEnv("SERVER_ADDR", "http://localhost:8080/"),
 	URLMetricPush: getEnv("URL_PATH", "update"),
-	TimeInterval:  11,
+	TimeInterval:  5,
 }
 
 // "http://localhost:8080/"
@@ -72,6 +72,10 @@ func main() {
 		Data:  make(map[string]metric.Metric),
 	}
 
+	// make ctx
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Microsecond)
+	defer cancel()
+
 	// make endpoint
 	endpoint := conf.Server + conf.URLMetricPush
 	// Create Ticker
@@ -98,9 +102,11 @@ func main() {
 		case <-tick.C:
 			mStorage.PopulateMetricStruct()
 			for _, v := range mStorage.Data {
-				resp, err := client.MetricSend(context.Background(), endpoint, v)
+				resp, err := client.MetricSend(ctx, endpoint, v)
+
 				if err != nil {
-					fmt.Println(fmt.Errorf("unable to send POST request(ticker):%w", err))
+					break
+
 				}
 				if resp != nil {
 					log.Println(resp.StatusCode(), v.ID)

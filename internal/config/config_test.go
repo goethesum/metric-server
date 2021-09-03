@@ -32,7 +32,7 @@ var theTestsGet = struct {
 	url                string
 	method             string
 	expectedStatusCode int
-}{"GetMetrics", "/", "GET", http.StatusOK}
+}{"GetMetrics", "/pull", "GET", http.StatusOK}
 
 var theTestsPost = struct {
 	name               string

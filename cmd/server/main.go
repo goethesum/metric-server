@@ -53,7 +53,7 @@ func router(cs *config.ConfigServer) http.Handler {
 
 	mux.Use(middleware.Recoverer)
 
-	mux.Get("/", cs.GetMetricsAll)
+	mux.Get("/pull", cs.GetMetricsAll)
 	mux.Get("/metric", cs.GetMetrics)
 	mux.Post("/update", cs.PostHandlerMetrics)
 

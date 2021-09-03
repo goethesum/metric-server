@@ -2,7 +2,6 @@ package config
 
 import (
 	"bytes"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -50,7 +49,7 @@ var theTestsPost = struct {
 func getRouter(cs *ConfigServer) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/update", cs.PostHandlerMetrics)
-	mux.HandleFunc("/", cs.GetMetrics)
+	mux.HandleFunc("/pull", cs.GetMetrics)
 
 	return mux
 }
@@ -67,7 +66,6 @@ func TestHandlerGet(t *testing.T) {
 	h.ServeHTTP(w, request)
 	resp := w.Result()
 	defer resp.Body.Close()
-	log.Println(resp.StatusCode)
 	if resp.StatusCode != theTestsGet.expectedStatusCode {
 		t.Errorf("for %s, expected %d but got %d", theTestsGet.name, theTestsGet.expectedStatusCode, resp.StatusCode)
 	}

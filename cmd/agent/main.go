@@ -110,6 +110,7 @@ func main() {
 				}
 				if resp != nil {
 					log.Println(resp.StatusCode(), v.ID)
+					log.Println(resp.StatusCode())
 				}
 			}
 

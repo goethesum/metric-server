@@ -32,7 +32,7 @@ var theTestsGet = struct {
 	url                string
 	method             string
 	expectedStatusCode int
-}{"GetMetrics", "/pull", "GET", http.StatusOK}
+}{"GetMetrics", "/", "GET", http.StatusOK}
 
 var theTestsPost = struct {
 	name               string
@@ -49,7 +49,7 @@ var theTestsPost = struct {
 func getRouter(cs *ConfigServer) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/update", cs.PostHandlerMetrics)
-	mux.HandleFunc("/pull", cs.GetMetrics)
+	mux.HandleFunc("/", cs.GetMetricsAll)
 
 	return mux
 }

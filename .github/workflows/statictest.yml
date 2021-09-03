@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - homework-1
 
 jobs:
 
@@ -23,17 +22,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Download devopstest binary
-      run: |
-        mkdir $GITHUB_WORKSPACE/.tools
-        cd $GITHUB_WORKSPACE/.tools
-        wget https://github.com/Yandex-Practicum/go-autotests-bin/raw/main/.tools/devopstest 
+    - name: Download statictest binary
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: Yandex-Practicum/go-autotests-bin
+        latest: true
+        fileName: statictest
+        out-file-path: .tools
 
     - name: Setup autotest binary
       run: |
         chmod -R +x $GITHUB_WORKSPACE/.tools/statictest
         mv $GITHUB_WORKSPACE/.tools/statictest /usr/local/bin/statictest
-
     - name: Run statictest
       run: |
         go vet -vettool=$(which statictest) ./...

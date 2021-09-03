@@ -20,12 +20,10 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Download devopstest binary
-      uses: robinraju/release-downloader@v1
-      with:
-        repository: Yandex-Practicum/go-autotests-bin
-        latest: true
-        fileName: devopstest
-        out-file-path: .tools
+      run: |
+        mkdir $GITHUB_WORKSPACE/.tools
+        cd $GITHUB_WORKSPACE/.tools
+        wget https://github.com/Yandex-Practicum/go-autotests-bin/raw/main/.tools/devopstest 
 
     - name: Setup autotest binary
       run: |

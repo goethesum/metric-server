@@ -25,10 +25,17 @@ type ConfigServer struct {
 
 func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) {
 
-	cs.Storage[r.URL.Query().Get("id")] = metric.Metric{
-		ID:    r.URL.Query().Get("id"),
-		Type:  metric.MetricType(r.URL.Query().Get("type")),
-		Value: r.URL.Query().Get("value"),
+	switch {
+	case r.URL.Query().Get("id") != "":
+		cs.Storage[r.URL.Query().Get("id")] = metric.Metric{ID: r.URL.Query().Get("id")}
+	case r.URL.Query().Get("type") == "gauge":
+		cs.Storage[r.URL.Query().Get("type")] = metric.Metric{Type: metric.MetricType(r.URL.Query().Get("id"))}
+	case r.URL.Query().Get("type") == "conter":
+		cs.Storage[r.URL.Query().Get("type")] = metric.Metric{Type: metric.MetricType(r.URL.Query().Get("id"))}
+	case r.URL.Query().Get("value") != "":
+		cs.Storage[r.URL.Query().Get("value")] = metric.Metric{ID: r.URL.Query().Get("value")}
+	default:
+		http.Error(w, "There are some empty keys", http.StatusBadRequest)
 	}
 
 }

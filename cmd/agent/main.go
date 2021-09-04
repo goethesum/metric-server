@@ -107,7 +107,7 @@ func main() {
 				resp, err := client.MetricSend(ctx, endpoint, v)
 
 				if err != nil {
-					break
+					log.Println("Failed to send", v.ID)
 
 				}
 				if resp != nil {

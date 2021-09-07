@@ -1,6 +1,8 @@
 package metric
 
 import (
+	"errors"
+	"net/http"
 	"net/url"
 	"runtime"
 	"strconv"
@@ -11,6 +13,12 @@ type MetricType string
 const (
 	MetricTypeGauge   MetricType = "gauge"
 	MetricTypeCounter MetricType = "counter"
+)
+
+const (
+	queryKeyMetricID    = "id"
+	queryKeyMetricValue = "value"
+	queryKeyMetricType  = "type"
 )
 
 type Metric struct {
@@ -30,6 +38,26 @@ func (m Metric) NewSendURL() (string, error) {
 type AgentStorage struct {
 	Stats runtime.MemStats
 	Data  map[string]Metric
+}
+
+func ParseMetricEntityFromRequest(r *http.Request) (*Metric, error) {
+	m := new(Metric)
+
+	if m.ID = r.URL.Query().Get(queryKeyMetricID); m.ID == "" {
+		return nil, errors.New("empty \"id\" query param")
+	}
+	if m.Type = MetricType(r.URL.Query().Get(queryKeyMetricType)); m.Type == "" {
+		return nil, errors.New("empty \"type\" query param")
+	}
+	if m.Value = r.URL.Query().Get(queryKeyMetricValue); m.Value == "" {
+		return nil, errors.New("empty \"value\" query param")
+	}
+
+	if m.Type != MetricTypeGauge && m.Type != MetricTypeCounter {
+		return nil, errors.New("unknown metric type")
+	}
+
+	return m, nil
 }
 
 func (as *AgentStorage) PopulateMetricStruct() {

@@ -22,7 +22,7 @@ func main() {
 	// Setup environmet
 	confServ = &config.ConfigServer{
 		PortNumber: ":8080",
-		Storage:    make(map[string]metric.Metric),
+		Storage:    make(map[string]*metric.Metric),
 		Mutex:      &sync.Mutex{},
 	}
 

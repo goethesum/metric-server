@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -19,27 +21,18 @@ type ConfigAgent struct {
 
 type ConfigServer struct {
 	PortNumber string
-	Storage    map[string]metric.Metric
+	Storage    map[string]*metric.Metric
 	*sync.Mutex
 }
 
 func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) {
 
-	switch {
-	case r.URL.Query().Get("id") == "":
-		http.Error(w, "id is empty", http.StatusBadRequest)
-	case r.URL.Query().Get("type") == "":
-		http.Error(w, "type is empty", http.StatusBadRequest)
-	case r.URL.Query().Get("value") == "":
-		http.Error(w, "value is empty", http.StatusBadRequest)
-	default:
-		cs.Storage[r.URL.Query().Get("id")] = metric.Metric{
-			ID:    r.URL.Query().Get("id"),
-			Type:  metric.MetricType(r.URL.Query().Get("type")),
-			Value: r.URL.Query().Get("value"),
-		}
-
+	m, err := metric.ParseMetricEntityFromRequest(r)
+	if err != nil {
+		http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
 	}
+	ID := r.URL.Query().Get("id")
+	cs.Storage[ID] = m
 
 }
 
@@ -51,34 +44,35 @@ func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 	value, err := cs.GetMetricsByKey(context.Background(), key)
 	if err != nil {
 		http.Error(w, "metric not found", http.StatusBadRequest)
+		log.Println(err)
+		return
 	}
 
-	jsonMetric, err := json.Marshal(value)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(&value); err != nil {
 		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
+		return
 	}
-	w.Write(jsonMetric)
 
 }
 
 // Return metric data in JSON
 func (cs *ConfigServer) GetMetricsAll(w http.ResponseWriter, r *http.Request) {
 
-	jsonMetricAll, err := json.MarshalIndent(cs.Storage, "", "    ")
-	if err != nil {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(cs.Storage); err != nil {
 		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
 	}
-	w.Write(jsonMetricAll)
 
 }
 
-func (cs *ConfigServer) GetMetricsByKey(ctx context.Context, key string) (metric.Metric, error) {
+func (cs *ConfigServer) GetMetricsByKey(ctx context.Context, key string) (*metric.Metric, error) {
 	cs.Lock()
 	defer cs.Unlock()
 
 	m, ok := cs.Storage[key]
 	if !ok {
-		return metric.Metric{}, errors.New("metric not found")
+		return nil, errors.New("metric not found")
 	}
 	return m, nil
 

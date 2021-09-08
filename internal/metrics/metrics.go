@@ -54,7 +54,7 @@ func ParseMetricEntityFromRequest(r *http.Request) (*Metric, error) {
 	}
 
 	if m.Type != MetricTypeGauge && m.Type != MetricTypeCounter {
-		return nil, errors.New("unknown metric type")
+		return nil, errors.New("missmatched type")
 	}
 
 	return m, nil

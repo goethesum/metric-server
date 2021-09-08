@@ -21,8 +21,6 @@ var conf = config.ConfigAgent{
 	TimeInterval:  5,
 }
 
-// "http://localhost:8080/"
-
 type HTTPClient interface {
 	MetricSend(ctx context.Context, metrics metric.Metric) error
 }

@@ -31,6 +31,9 @@ func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
 	}
+	if err.Error() == "missmatched type" {
+		http.Error(w, fmt.Sprint(err), http.StatusNotImplemented)
+	}
 	ID := r.URL.Query().Get("id")
 	cs.Storage[ID] = m
 

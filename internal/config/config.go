@@ -28,11 +28,17 @@ type ConfigServer struct {
 func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) {
 
 	m, err := metric.ParseMetricEntityFromRequest(r)
+
 	if err != nil {
-		http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
-	}
-	if err.Error() == "missmatched type" {
-		http.Error(w, fmt.Sprint(err), http.StatusNotImplemented)
+		if err.Error() == "missmatched type" {
+			log.Println(err)
+			http.Error(w, fmt.Sprint(err), http.StatusNotImplemented)
+			return
+		} else {
+			log.Println(err)
+			http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
+			return
+		}
 	}
 	ID := r.URL.Query().Get("id")
 	cs.Storage[ID] = m

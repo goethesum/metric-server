@@ -49,6 +49,7 @@ func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metri
 	resp, err := client.client.SetTimeout(1 * time.Second).
 		R().
 		Post(endpoint + "?" + url)
+	fmt.Println(endpoint + "?" + url)
 	if err != nil {
 		return nil, fmt.Errorf("unable to send POST request:%w", err)
 	}

@@ -16,8 +16,8 @@ import (
 )
 
 var conf = config.ConfigAgent{
-	Server:        getEnv("SERVER_ADDR", "http://localhost:8080/"),
-	URLMetricPush: getEnv("URL_PATH", "update"),
+	Server:        getEnv("SERVER_ADDR", "http://localhost:8080"),
+	URLMetricPush: getEnv("URL_PATH", "/"),
 	TimeInterval:  5,
 }
 

@@ -13,6 +13,7 @@ type MetricType string
 const (
 	MetricTypeGauge   MetricType = "gauge"
 	MetricTypeCounter MetricType = "counter"
+	MetricTypeTest    MetricType = "clounter"
 )
 
 const (
@@ -179,7 +180,7 @@ func (as *AgentStorage) PopulateMetricStruct() {
 	}
 	as.Data["PauseTotalNs"] = Metric{
 		ID:    "PauseTotalNs",
-		Type:  MetricTypeGauge,
+		Type:  MetricTypeCounter,
 		Value: strconv.FormatUint(as.Stats.PauseTotalNs, 10),
 	}
 

@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
@@ -42,6 +44,24 @@ func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Reques
 	}
 	ID := r.URL.Query().Get("id")
 	cs.Storage[ID] = m
+
+}
+
+func (cs *ConfigServer) PostHandlerMetricById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "empty \"id\"", http.StatusBadRequest)
+		return
+	}
+
+}
+
+func (cs *ConfigServer) GetMetricsById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := json.NewEncoder(w).Encode(cs.Storage[id]); err != nil {
+		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
+		return
+	}
 
 }
 

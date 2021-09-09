@@ -53,11 +53,18 @@ func router(cs *config.ConfigServer) http.Handler {
 
 	mux.Use(middleware.Recoverer)
 
-	mux.Get("/", cs.GetMetricsAll)
-	mux.Get("/metric", cs.GetMetrics)
-	mux.Get("/update", cs.GetMetricsAll)
-	mux.Post("/", cs.PostHandlerMetrics)
-	mux.Post("/update", cs.PostHandlerMetrics)
+	mux.Route("/", func(mux chi.Router) {
+		mux.Get("/", cs.GetMetricsAll)
+		mux.Get("/{id}", cs.GetMetricsById)
+		mux.Post("/", cs.PostHandlerMetrics)
+	})
 
+	mux.Route("/update", func(mux chi.Router) {
+		mux.Get("/", cs.GetMetricsAll)
+		mux.Post("/", cs.PostHandlerMetrics)
+		mux.Post("/{id}/{type}/{value}", cs.PostHandlerMetricById)
+	})
+
+	mux.Get("/metric", cs.GetMetrics)
 	return mux
 }

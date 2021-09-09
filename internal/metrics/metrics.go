@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"runtime"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type MetricType string
@@ -51,6 +53,26 @@ func ParseMetricEntityFromRequest(r *http.Request) (*Metric, error) {
 		return nil, errors.New("empty \"type\" query param")
 	}
 	if m.Value = r.URL.Query().Get(queryKeyMetricValue); m.Value == "" {
+		return nil, errors.New("empty \"value\" query param")
+	}
+
+	if m.Type != MetricTypeGauge && m.Type != MetricTypeCounter {
+		return nil, errors.New("missmatched type")
+	}
+
+	return m, nil
+}
+
+func ParseMetricEntityFromURL(r *http.Request) (*Metric, error) {
+	m := new(Metric)
+
+	if m.ID = chi.URLParam(r, queryKeyMetricID); m.ID == "" {
+		return nil, errors.New("empty \"id\" query param")
+	}
+	if m.Type = MetricType(chi.URLParam(r, queryKeyMetricType)); m.Type == "" {
+		return nil, errors.New("empty \"type\" query param")
+	}
+	if m.Value = chi.URLParam(r, queryKeyMetricValue); m.Value == "" {
 		return nil, errors.New("empty \"value\" query param")
 	}
 

@@ -47,12 +47,21 @@ func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (cs *ConfigServer) PostHandlerMetricById(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		http.Error(w, "empty \"id\"", http.StatusBadRequest)
-		return
+func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
+	m, err := metric.ParseMetricEntityFromURL(r)
+	if err != nil {
+		if err.Error() == "missmatched type" {
+			log.Println(err)
+			http.Error(w, fmt.Sprint(err), http.StatusNotImplemented)
+			return
+		} else {
+			log.Println(err)
+			http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
+			return
+		}
 	}
+	ID := r.URL.Query().Get("id")
+	cs.Storage[ID] = m
 
 }
 

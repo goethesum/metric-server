@@ -60,12 +60,12 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 			return
 		}
 	}
-	ID := r.URL.Query().Get("id")
+	ID := chi.URLParam(r, "id")
 	cs.Storage[ID] = m
 
 }
 
-func (cs *ConfigServer) GetMetricsById(w http.ResponseWriter, r *http.Request) {
+func (cs *ConfigServer) GetMetricsByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if err := json.NewEncoder(w).Encode(cs.Storage[id]); err != nil {
 		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)

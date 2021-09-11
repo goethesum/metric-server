@@ -61,11 +61,15 @@ func router(cs *config.ConfigServer) http.Handler {
 	})
 
 	mux.Route("/update", func(mux chi.Router) {
+
+		mux.Post("/gauge", cs.PostHandlerMetricByURL)
 		mux.Get("/", cs.GetMetricsAll)
 		mux.Post("/", cs.PostHandlerMetrics)
-		mux.Post("/{id}-{type}-{value}", cs.PostHandlerMetricByURL)
+		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
 	})
 
 	mux.Get("/metric", cs.GetMetrics)
 	return mux
 }
+
+// Post "http://localhost:8080/update/gauge/githubActionGauge/100"

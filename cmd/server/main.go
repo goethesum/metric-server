@@ -59,13 +59,14 @@ func router(cs *config.ConfigServer) http.Handler {
 		mux.Get("/{id}", cs.GetMetricsByID)
 		mux.Post("/", cs.PostHandlerMetrics)
 	})
-
 	mux.Route("/update", func(mux chi.Router) {
-
-		mux.Post("/gauge", cs.PostHandlerMetricByURL)
 		mux.Get("/", cs.GetMetricsAll)
 		mux.Post("/", cs.PostHandlerMetrics)
 		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
+	})
+	mux.Route("/value", func(mux chi.Router) {
+		mux.Get("/", cs.GetCheck)
+		mux.Get("/{type}/{id}", cs.GetMetricsByValue)
 	})
 
 	mux.Get("/metric", cs.GetMetrics)
@@ -73,3 +74,4 @@ func router(cs *config.ConfigServer) http.Handler {
 }
 
 // Post "http://localhost:8080/update/gauge/githubActionGauge/100"
+// Get "http://localhost:8080/value/gauge/BuckHashSys"

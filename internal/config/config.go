@@ -74,6 +74,28 @@ func (cs *ConfigServer) GetMetricsByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetMetricsByValue return metrics via GET /value/{type}/{id}
+
+func (cs *ConfigServer) GetMetricsByValue(w http.ResponseWriter, r *http.Request) {
+	metricType := chi.URLParam(r, "type")
+	if metricType != string(metric.MetricTypeGauge) && metricType != string(metric.MetricTypeCounter) {
+		log.Println("missmatched type")
+		http.Error(w, "missmatched type", http.StatusNotImplemented)
+		return
+	}
+	ID := chi.URLParam(r, "id")
+	if err := json.NewEncoder(w).Encode(cs.Storage[ID]); err != nil {
+		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
+		return
+	}
+
+}
+
+func (cs *ConfigServer) GetCheck(w http.ResponseWriter, r *http.Request) {
+	url := r.RequestURI
+	fmt.Fprintf(w, "hello from %s", url)
+}
+
 // Return metric data in JSON by Requested URI
 func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 

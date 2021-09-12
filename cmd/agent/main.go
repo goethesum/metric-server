@@ -75,7 +75,7 @@ func main() {
 	}
 
 	// make ctx
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Microsecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	// make endpoint

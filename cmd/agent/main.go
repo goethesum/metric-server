@@ -21,10 +21,6 @@ var conf = config.ConfigAgent{
 	TimeInterval:  5,
 }
 
-type HTTPClient interface {
-	MetricSend(ctx context.Context, metrics metric.Metric) error
-}
-
 type clientHTTP struct {
 	client resty.Client
 }

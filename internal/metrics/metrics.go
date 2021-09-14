@@ -25,9 +25,9 @@ const (
 )
 
 type Metric struct {
-	ID    string
-	Type  MetricType
-	Value string
+	ID    string     `json:"id"`
+	Type  MetricType `json:"type"`
+	Value string     `json:"delta"`
 }
 
 func (m Metric) NewSendURL() (string, error) {

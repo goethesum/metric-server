@@ -27,6 +27,7 @@ type ConfigServer struct {
 	*sync.Mutex
 }
 
+// old post handler for query params
 func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) {
 
 	m, err := metric.ParseMetricEntityFromRequest(r)
@@ -44,6 +45,17 @@ func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Reques
 	}
 	ID := r.URL.Query().Get("id")
 	cs.Storage[ID] = m
+
+}
+
+func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var m metric.Metric
+	err := decoder.Decode(&m)
+	if err != nil {
+		log.Printf("unable to decode params, %s", err)
+		return
+	}
 
 }
 

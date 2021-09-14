@@ -61,7 +61,7 @@ func router(cs *config.ConfigServer) http.Handler {
 	})
 	mux.Route("/update", func(mux chi.Router) {
 		mux.Get("/", cs.GetMetricsAll)
-		mux.Post("/", cs.PostHandlerMetrics)
+		mux.Post("/", cs.PostHandlerMetricsJSON)
 		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
 	})
 	mux.Route("/value", func(mux chi.Router) {

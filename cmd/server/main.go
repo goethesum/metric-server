@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"sync"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/config"
@@ -21,9 +22,12 @@ func main() {
 
 	// Setup environmet
 	confServ = &config.ConfigServer{
-		PortNumber: "0.0.0.0:8080",
-		Storage:    make(map[string]*metric.Metric),
-		Mutex:      &sync.Mutex{},
+		Storage: make(map[string]*metric.Metric),
+		Mutex:   &sync.Mutex{},
+	}
+	// read env variable
+	if err := env.Parse(confServ); err != nil {
+		fmt.Printf("%+v\n", err)
 	}
 
 	server := &http.Server{

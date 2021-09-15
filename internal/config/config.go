@@ -22,7 +22,7 @@ type ConfigAgent struct {
 }
 
 type ConfigServer struct {
-	PortNumber string
+	PortNumber string `env:"SERVER_ADDRESS" envDefault:"0.0.0.0:8080"`
 	Storage    map[string]*metric.Metric
 	*sync.Mutex
 }

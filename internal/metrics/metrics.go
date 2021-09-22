@@ -1,9 +1,11 @@
 package metric
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
-	"net/url"
 	"runtime"
 	"strconv"
 
@@ -27,15 +29,81 @@ const (
 type Metric struct {
 	ID    string     `json:"id"`
 	Type  MetricType `json:"type"`
-	Value string     `json:"delta"`
+	Value string     `json:"value"`
 }
 
-func (m Metric) NewSendURL() (string, error) {
-	params := url.Values{}
-	params.Add("id", m.ID)
-	params.Add("type", string(m.Type))
-	params.Add("value", m.Value)
-	return params.Encode(), nil
+func (m *Metric) MarshalJSON() (data []byte, err error) {
+	switch {
+	case m.Type == MetricTypeCounter:
+		digit, _ := strconv.ParseFloat(m.Value, 64)
+		MetricValue := &struct {
+			ID    string     `json:"ID"`
+			Type  MetricType `json:"type"`
+			Value float64    `json:"value"`
+		}{
+			ID:    m.ID,
+			Type:  m.Type,
+			Value: digit,
+		}
+		return json.Marshal(MetricValue)
+	case m.Type == MetricTypeGauge:
+		digit, _ := strconv.Atoi(m.Value)
+		MetricDelta := &struct {
+			ID    string     `json:"ID"`
+			Type  MetricType `json:"type"`
+			Value int        `json:"delta"`
+		}{
+			ID:    m.ID,
+			Type:  m.Type,
+			Value: digit,
+		}
+		return json.Marshal(MetricDelta)
+	default:
+		return nil, errors.New("missmatched type")
+	}
+
+}
+
+func (m *Metric) UnmarshalJSON(data []byte) error {
+	var v interface{}
+
+	if err := json.Unmarshal(data, &v); err != nil {
+		log.Printf("error during UnamarshalJSON %s", err)
+		return err
+	}
+	assertion := v.(map[string]interface{})
+
+	aliasValue := &struct {
+		ID    string `json:"id"`
+		Type  string `json:"type"`
+		Value string `json:"value"`
+	}{}
+	aliasDelta := &struct {
+		ID    string `json:"id"`
+		Type  string `json:"type"`
+		Value string `json:"delta"`
+	}{}
+
+	switch {
+	case assertion["type"].(string) == string(MetricTypeCounter):
+
+		if err := json.Unmarshal(data, &aliasValue); err != nil {
+			return err
+		}
+		m.ID = aliasValue.ID
+		m.Type = MetricType(aliasValue.Type)
+		m.Value = aliasValue.Value
+		fmt.Println(m)
+	case assertion["type"].(string) == string(MetricTypeGauge):
+		if err := json.Unmarshal(data, &aliasDelta); err != nil {
+			return err
+		}
+		m.ID = aliasValue.ID
+		m.Type = MetricType(aliasValue.Type)
+		m.Value = aliasValue.Value
+		fmt.Println(m)
+	}
+	return nil
 }
 
 type AgentStorage struct {

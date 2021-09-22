@@ -16,8 +16,8 @@ import (
 )
 
 type ConfigAgent struct {
-	Server        string
-	URLMetricPush string
+	Server        string `env:"PUSH_ADDRESS" envDefault:"http://localhost:8080"`
+	URLMetricPush string `env:"URL_PATH" envDefault:"/update"`
 	TimeInterval  time.Duration
 }
 
@@ -49,13 +49,14 @@ func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Reques
 }
 
 func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
+	m := new(metric.Metric)
+	fmt.Println(r.Body)
 	decoder := json.NewDecoder(r.Body)
-	var m metric.Metric
-	err := decoder.Decode(&m)
-	if err != nil {
-		log.Printf("unable to decode params, %s", err)
+	if err := decoder.Decode(&m); err != nil {
+		log.Printf("unable to decode params in PostHandlerMetricsJSON, %s", err)
 		return
 	}
+	cs.Storage[m.ID] = m
 
 }
 
@@ -129,10 +130,11 @@ func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 
 // Return metric data in JSON
 func (cs *ConfigServer) GetMetricsAll(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println(cs.Storage["Frees"].Type)
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(cs.Storage); err != nil {
+		log.Printf("unable to marshal the struct in GetMetricaAll %s", err)
 		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
 	}
 

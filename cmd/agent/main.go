@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,43 +11,30 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/go-resty/resty/v2"
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/config"
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
-var conf = config.ConfigAgent{
-	Server:        getEnv("SERVER_ADDR", "http://localhost:8080"),
-	URLMetricPush: getEnv("URL_PATH", "/"),
-	TimeInterval:  5,
-}
-
 type clientHTTP struct {
 	client resty.Client
-}
-
-// Looks up for ENV variables, returns default if it doesn't exist
-func getEnv(key string, defaultVal string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-
-	return defaultVal
 }
 
 // MetricSend takes Server address and relative path from config struct
 // Calls NewSendUrl to construct encoded URL
 func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metrics metric.Metric) (*resty.Response, error) {
-	url, err := metrics.NewSendURL()
+	jsonMetric, err := json.Marshal(metrics)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse url:%w", err)
+		log.Printf("error during marshal in MetricSend %s", err)
 	}
-
-	resp, err := client.client.SetTimeout(1 * time.Second).
-		SetRetryCount(3).
-		SetRetryWaitTime(3 * time.Second).
+	resp, err := client.client.SetTimeout(1*time.Second).
+		SetRetryCount(2).
+		SetRetryWaitTime(1*time.Second).
 		R().
-		Post(endpoint + "?" + url)
+		SetHeader("Content-Type", "application/json").
+		SetBody(jsonMetric).
+		Post(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to send POST request:%w", err)
 	}
@@ -58,6 +46,14 @@ func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metri
 }
 
 func main() {
+	conf := &config.ConfigAgent{
+		TimeInterval: 5,
+	}
+
+	// read env variable
+	if err := env.Parse(conf); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
 
 	// init client
 	client := &clientHTTP{
@@ -76,6 +72,7 @@ func main() {
 
 	// make endpoint
 	endpoint := conf.Server + conf.URLMetricPush
+	fmt.Println(endpoint)
 	// Create Ticker
 	tick := time.NewTicker(conf.TimeInterval * time.Second)
 	defer tick.Stop()

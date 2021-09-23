@@ -130,7 +130,10 @@ func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 
 // Return metric data in JSON
 func (cs *ConfigServer) GetMetricsAll(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(cs.Storage["Frees"].Type)
+	fmt.Println(cs.Storage)
+	for i, e := range cs.Storage {
+		fmt.Println(*e, i)
+	}
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(cs.Storage); err != nil {

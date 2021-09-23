@@ -26,7 +26,7 @@ type clientHTTP struct {
 func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metrics metric.Metric) (*resty.Response, error) {
 	jsonMetric, err := json.Marshal(metrics)
 	if err != nil {
-		log.Printf("error during marshal in MetricSend %s", err)
+		log.Printf("error during marshaling in MetricSend %s", err)
 	}
 	resp, err := client.client.SetTimeout(1*time.Second).
 		SetRetryCount(2).

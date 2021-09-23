@@ -17,7 +17,6 @@ type MetricType string
 const (
 	MetricTypeGauge   MetricType = "gauge"
 	MetricTypeCounter MetricType = "counter"
-	MetricTypeTest    MetricType = "clounter"
 )
 
 const (
@@ -32,7 +31,7 @@ type Metric struct {
 	Value string     `json:"value"`
 }
 
-func (m *Metric) MarshalJSON() (data []byte, err error) {
+func (m Metric) MarshalJSON() (data []byte, err error) {
 	switch {
 	case m.Type == MetricTypeCounter:
 		digit, _ := strconv.ParseFloat(m.Value, 64)
@@ -59,7 +58,7 @@ func (m *Metric) MarshalJSON() (data []byte, err error) {
 		}
 		return json.Marshal(MetricDelta)
 	default:
-		return nil, errors.New("missmatched type")
+		return nil, errors.New("missmatched type in MarshalJSON")
 	}
 
 }
@@ -74,14 +73,14 @@ func (m *Metric) UnmarshalJSON(data []byte) error {
 	assertion := v.(map[string]interface{})
 
 	aliasValue := &struct {
-		ID    string `json:"id"`
-		Type  string `json:"type"`
-		Value string `json:"value"`
+		ID    string  `json:"id"`
+		Type  string  `json:"type"`
+		Value float64 `json:"value"`
 	}{}
 	aliasDelta := &struct {
 		ID    string `json:"id"`
 		Type  string `json:"type"`
-		Value string `json:"delta"`
+		Value int    `json:"delta"`
 	}{}
 
 	switch {
@@ -92,7 +91,7 @@ func (m *Metric) UnmarshalJSON(data []byte) error {
 		}
 		m.ID = aliasValue.ID
 		m.Type = MetricType(aliasValue.Type)
-		m.Value = aliasValue.Value
+		m.Value = fmt.Sprint(aliasValue.Value)
 		fmt.Println(m)
 	case assertion["type"].(string) == string(MetricTypeGauge):
 		if err := json.Unmarshal(data, &aliasDelta); err != nil {
@@ -100,7 +99,7 @@ func (m *Metric) UnmarshalJSON(data []byte) error {
 		}
 		m.ID = aliasValue.ID
 		m.Type = MetricType(aliasValue.Type)
-		m.Value = aliasValue.Value
+		m.Value = fmt.Sprint(aliasDelta.Value)
 		fmt.Println(m)
 	}
 	return nil

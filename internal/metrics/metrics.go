@@ -34,11 +34,11 @@ type Metric struct {
 func (m Metric) MarshalJSON() (data []byte, err error) {
 	switch {
 	case m.Type == MetricTypeCounter:
-		digit, _ := strconv.ParseFloat(m.Value, 64)
+		digit, _ := strconv.Atoi(m.Value)
 		MetricValue := &struct {
 			ID    string     `json:"ID"`
 			Type  MetricType `json:"type"`
-			Value float64    `json:"value"`
+			Value int        `json:"delta"`
 		}{
 			ID:    m.ID,
 			Type:  m.Type,
@@ -46,11 +46,11 @@ func (m Metric) MarshalJSON() (data []byte, err error) {
 		}
 		return json.Marshal(MetricValue)
 	case m.Type == MetricTypeGauge:
-		digit, _ := strconv.Atoi(m.Value)
+		digit, _ := strconv.ParseFloat(m.Value, 64)
 		MetricDelta := &struct {
 			ID    string     `json:"ID"`
 			Type  MetricType `json:"type"`
-			Value int        `json:"delta"`
+			Value float64    `json:"value"`
 		}{
 			ID:    m.ID,
 			Type:  m.Type,
@@ -64,42 +64,45 @@ func (m Metric) MarshalJSON() (data []byte, err error) {
 }
 
 func (m *Metric) UnmarshalJSON(data []byte) error {
-	var v interface{}
+	var v map[string]interface{}
 
 	if err := json.Unmarshal(data, &v); err != nil {
 		log.Printf("error during UnamarshalJSON %s", err)
 		return err
 	}
-	assertion := v.(map[string]interface{})
-
-	aliasValue := &struct {
-		ID    string  `json:"id"`
-		Type  string  `json:"type"`
-		Value float64 `json:"value"`
-	}{}
+	fmt.Println(v)
+	// counter struct
 	aliasDelta := &struct {
 		ID    string `json:"id"`
 		Type  string `json:"type"`
 		Value int    `json:"delta"`
 	}{}
+	// gauge struct
+	aliasValue := &struct {
+		ID    string  `json:"id"`
+		Type  string  `json:"type"`
+		Value float64 `json:"value"`
+	}{}
 
 	switch {
-	case assertion["type"].(string) == string(MetricTypeCounter):
+	case v["type"].(string) == string(MetricTypeCounter):
 
-		if err := json.Unmarshal(data, &aliasValue); err != nil {
-			return err
-		}
-		m.ID = aliasValue.ID
-		m.Type = MetricType(aliasValue.Type)
-		m.Value = fmt.Sprint(aliasValue.Value)
-		fmt.Println(m)
-	case assertion["type"].(string) == string(MetricTypeGauge):
 		if err := json.Unmarshal(data, &aliasDelta); err != nil {
 			return err
 		}
+		fmt.Println(aliasDelta)
+		m.ID = aliasDelta.ID
+		m.Type = MetricType(aliasDelta.Type)
+		m.Value = strconv.Itoa(aliasDelta.Value)
+		fmt.Println(m)
+	case v["type"].(string) == string(MetricTypeGauge):
+		if err := json.Unmarshal(data, &aliasValue); err != nil {
+			return err
+		}
+		fmt.Println(aliasValue)
 		m.ID = aliasValue.ID
 		m.Type = MetricType(aliasValue.Type)
-		m.Value = fmt.Sprint(aliasDelta.Value)
+		m.Value = fmt.Sprint(aliasValue.Value)
 		fmt.Println(m)
 	}
 	return nil

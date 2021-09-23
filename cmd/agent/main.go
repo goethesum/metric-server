@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -23,7 +22,7 @@ type clientHTTP struct {
 
 // MetricSend takes Server address and relative path from config struct
 // Calls NewSendUrl to construct encoded URL
-func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metrics metric.Metric) (*resty.Response, error) {
+func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*resty.Response, error) {
 	jsonMetric, err := json.Marshal(metrics)
 	if err != nil {
 		log.Printf("error during marshaling in MetricSend %s", err)
@@ -66,10 +65,6 @@ func main() {
 		Data:  make(map[string]metric.Metric),
 	}
 
-	// make ctx
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-
 	// make endpoint
 	endpoint := conf.Server + conf.URLMetricPush
 	fmt.Println(endpoint)
@@ -97,7 +92,7 @@ func main() {
 		case <-tick.C:
 			mStorage.PopulateMetricStruct()
 			for _, v := range mStorage.Data {
-				resp, err := client.MetricSend(ctx, endpoint, v)
+				resp, err := client.MetricSend(endpoint, v)
 
 				if err != nil {
 					log.Println(err)

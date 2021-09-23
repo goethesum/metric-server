@@ -37,7 +37,7 @@ func TestMetricSend(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	resp, err := testClient.MetricSend(context.Background(), ts.URL, *testMetric)
+	resp, err := testClient.MetricSend(ts.URL, *testMetric)
 	if err != nil {
 		t.Errorf("throw an error during the test %s", err)
 	}

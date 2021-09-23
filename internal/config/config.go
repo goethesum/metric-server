@@ -16,8 +16,8 @@ import (
 )
 
 type ConfigAgent struct {
-	Server        string
-	URLMetricPush string
+	Server        string `env:"PUSH_ADDRESS" envDefault:"http://localhost:8080"`
+	URLMetricPush string `env:"URL_PATH" envDefault:"/update"`
 	TimeInterval  time.Duration
 }
 
@@ -48,17 +48,13 @@ func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var m metric.Metric
-	err := decoder.Decode(&m)
-	if err != nil {
-		log.Printf("unable to decode params, %s", err)
-		return
-	}
+// handle URL param requests
 
-}
-
+/*some remarks:
+agent still send metrics in format like ?id=HeapObjects&type=counter&value=1316
+but this functionality has been tested with curl -X POST http://localhost:8080/update/gauge/githubActionGauge/100
+and it works :)
+*/
 func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
 	m, err := metric.ParseMetricEntityFromURL(r)
 	if err != nil {

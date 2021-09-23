@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,33 +9,23 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/go-resty/resty/v2"
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/config"
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
 var conf = config.ConfigAgent{
-	Server:        getEnv("SERVER_ADDR", "http://localhost:8080"),
-	URLMetricPush: getEnv("URL_PATH", "/"),
-	TimeInterval:  5,
+	TimeInterval: 5,
 }
 
 type clientHTTP struct {
 	client resty.Client
 }
 
-// Looks up for ENV variables, returns default if it doesn't exist
-func getEnv(key string, defaultVal string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-
-	return defaultVal
-}
-
 // MetricSend takes Server address and relative path from config struct
 // Calls NewSendUrl to construct encoded URL
-func (client *clientHTTP) MetricSend(ctx context.Context, endpoint string, metrics metric.Metric) (*resty.Response, error) {
+func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*resty.Response, error) {
 	url, err := metrics.NewSendURL()
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse url:%w", err)
@@ -64,15 +53,16 @@ func main() {
 		client: *resty.New(),
 	}
 
+	// read env variable
+	if err := env.Parse(&conf); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
 	// Stores agent data
 	mStorage := &metric.AgentStorage{
 		Stats: runtime.MemStats{},
 		Data:  make(map[string]metric.Metric),
 	}
-
-	// make ctx
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
 
 	// make endpoint
 	endpoint := conf.Server + conf.URLMetricPush
@@ -91,6 +81,7 @@ func main() {
 		}
 
 	}()
+	log.Println("Pushing metrics to", conf.Server+conf.URLMetricPush)
 	// Start handling some logic on each tick
 	for {
 		select {
@@ -100,7 +91,7 @@ func main() {
 		case <-tick.C:
 			mStorage.PopulateMetricStruct()
 			for _, v := range mStorage.Data {
-				resp, err := client.MetricSend(ctx, endpoint, v)
+				resp, err := client.MetricSend(endpoint, v)
 
 				if err != nil {
 					log.Println(err)

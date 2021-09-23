@@ -15,7 +15,6 @@ type MetricType string
 const (
 	MetricTypeGauge   MetricType = "gauge"
 	MetricTypeCounter MetricType = "counter"
-	MetricTypeTest    MetricType = "clounter"
 )
 
 const (
@@ -43,6 +42,7 @@ type AgentStorage struct {
 	Data  map[string]Metric
 }
 
+// validate metrics recieved via query params
 func ParseMetricEntityFromRequest(r *http.Request) (*Metric, error) {
 	m := new(Metric)
 
@@ -63,6 +63,7 @@ func ParseMetricEntityFromRequest(r *http.Request) (*Metric, error) {
 	return m, nil
 }
 
+// validate metrics recieved via URL params
 func ParseMetricEntityFromURL(r *http.Request) (*Metric, error) {
 	m := new(Metric)
 

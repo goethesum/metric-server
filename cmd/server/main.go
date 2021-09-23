@@ -27,7 +27,7 @@ func main() {
 	}
 	// read env variable
 	if err := env.Parse(confServ); err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 
 	server := &http.Server{
@@ -65,7 +65,7 @@ func router(cs *config.ConfigServer) http.Handler {
 	})
 	mux.Route("/update", func(mux chi.Router) {
 		mux.Get("/", cs.GetMetricsAll)
-		mux.Post("/", cs.PostHandlerMetricsJSON)
+		mux.Post("/", cs.PostHandlerMetrics)
 		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
 	})
 	mux.Route("/value", func(mux chi.Router) {
@@ -77,5 +77,6 @@ func router(cs *config.ConfigServer) http.Handler {
 	return mux
 }
 
+// Some examples of requests from autotests
 // Post "http://localhost:8080/update/gauge/githubActionGauge/100"
 // Get "http://localhost:8080/value/gauge/BuckHashSys"

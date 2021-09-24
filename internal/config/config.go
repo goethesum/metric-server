@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/goethesum/-go-musthave-devops-tpl/internal/history"
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
@@ -22,8 +23,9 @@ type ConfigAgent struct {
 }
 
 type ConfigServer struct {
-	PortNumber string `env:"SERVER_ADDRESS" envDefault:"0.0.0.0:8080"`
-	Storage    map[string]*metric.Metric
+	PortNumber  string `env:"SERVER_ADDRESS" envDefault:"0.0.0.0:8080"`
+	Storage     map[string]*metric.Metric
+	FileStorage string `env:"FILE_STORAGE_PATH" envDefault:"./history"`
 	*sync.Mutex
 }
 
@@ -57,6 +59,9 @@ func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Re
 		return
 	}
 	cs.Storage[m.ID] = m
+	s, _ := history.NewSaver(cs.FileStorage)
+	s.WriteMetric(m)
+	defer s.Close()
 
 }
 

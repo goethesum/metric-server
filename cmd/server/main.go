@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/goethesum/-go-musthave-devops-tpl/internal/config"
+	"github.com/goethesum/-go-musthave-devops-tpl/internal/history"
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
@@ -46,6 +47,18 @@ func main() {
 		}
 
 	}()
+	// Restore metrics from file FILE_STORAGE_PATH
+	r, err := history.NewRestorer(confServ.FileStorage)
+	if err != nil {
+		log.Printf("error during restore from file %s", err)
+		return
+	}
+
+	confServ.Storage, err = r.RestoreMetrics()
+	if err != nil {
+		log.Fatalf("dying by...:%s", err)
+	}
+	r.Close()
 
 	log.Println("Starting on port:", confServ.PortNumber)
 	log.Fatal(server.ListenAndServe())

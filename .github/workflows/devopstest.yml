@@ -29,10 +29,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-    - name: Download and setup autotest binary
-      run: |
-        wget https://github.com/Yandex-Practicum/go-autotests-bin/raw/main/.tools/devopstest -O /usr/local/bin/devopstest
-        chmod +x /usr/local/bin/devopstest
+      - name: Download autotests binaries
+        uses: robinraju/release-downloader@v1.2
+        with:
+          repository: Yandex-Practicum/go-autotests-bin
+          latest: true
+          fileName: "*"
+          out-file-path: .tools
+
+      - name: Download and setup devopstest
+        run: |
+          wget https://github.com/Yandex-Practicum/go-autotests-bin/raw/main/.tools/devopstest -O $GITHUB_WORKSPACE/.tools/devopstest
+
 
       - name: Setup autotest binary
         run: |

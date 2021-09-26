@@ -160,40 +160,30 @@ func (as *AgentStorage) PopulateMetricStruct() {
 		Type:  MetricTypeGauge,
 		Value: strconv.FormatUint(as.Stats.Alloc, 10),
 	}
-	as.Data["TotalAlloc"] = Metric{
-		ID:    "TotalAlloc",
+	as.Data["BuckHashSys"] = Metric{
+		ID:    "BuckHashSys",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.BuckHashSys, 10),
+	}
+	as.Data["GCSys"] = Metric{
+		ID:    "GCSys",
 		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.TotalAlloc, 10),
+		Value: strconv.FormatUint(as.Stats.GCSys, 10),
 	}
-	as.Data["Sys"] = Metric{
-		ID:    "Sys",
+	as.Data["GCCPUFraction"] = Metric{
+		ID:    "GCCPUFraction",
 		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Sys, 10),
-	}
-	as.Data["Lookups"] = Metric{
-		ID:    "Lookups",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Lookups, 10),
-	}
-	as.Data["Mallocs"] = Metric{
-		ID:    "Mallocs",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Mallocs, 10),
+		Value: strconv.FormatUint(uint64(as.Stats.GCCPUFraction), 10),
 	}
 	as.Data["Frees"] = Metric{
 		ID:    "Frees",
 		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.Mallocs, 10),
+		Value: strconv.FormatUint(as.Stats.Frees, 10),
 	}
 	as.Data["HeapAlloc"] = Metric{
 		ID:    "HeapAlloc",
 		Type:  MetricTypeGauge,
 		Value: strconv.FormatUint(as.Stats.HeapAlloc, 10),
-	}
-	as.Data["HeapSys"] = Metric{
-		ID:    "HeapSys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.HeapSys, 10),
 	}
 	as.Data["HeapIdle"] = Metric{
 		ID:    "HeapIdle",
@@ -205,25 +195,40 @@ func (as *AgentStorage) PopulateMetricStruct() {
 		Type:  MetricTypeGauge,
 		Value: strconv.FormatUint(as.Stats.HeapInuse, 10),
 	}
-	as.Data["HeapReleased"] = Metric{
-		ID:    "HeapReleased",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.HeapReleased, 10),
-	}
 	as.Data["HeapObjects"] = Metric{
 		ID:    "HeapObjects",
 		Type:  MetricTypeCounter,
 		Value: strconv.FormatUint(as.Stats.HeapObjects, 10),
 	}
-	as.Data["StackInuse"] = Metric{
-		ID:    "StackInuse",
+	as.Data["HeapReleased"] = Metric{
+		ID:    "HeapReleased",
 		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.StackInuse, 10),
+		Value: strconv.FormatUint(as.Stats.HeapReleased, 10),
 	}
-	as.Data["StackSys"] = Metric{
-		ID:    "StackSys",
+	as.Data["HeapSys"] = Metric{
+		ID:    "HeapSys",
 		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.StackSys, 10),
+		Value: strconv.FormatUint(as.Stats.HeapSys, 10),
+	}
+	as.Data["LastGC"] = Metric{
+		ID:    "LastGC",
+		Type:  MetricTypeCounter,
+		Value: strconv.FormatUint(as.Stats.LastGC, 10),
+	}
+	as.Data["Lookups"] = Metric{ //
+		ID:    "Lookups",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.Lookups, 10),
+	}
+	as.Data["MCacheInuse"] = Metric{
+		ID:    "MCacheInuse",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.MCacheInuse, 10),
+	}
+	as.Data["MCacheSys"] = Metric{
+		ID:    "MCacheSys",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.MCacheSys, 10),
 	}
 	as.Data["MSpanInuse"] = Metric{
 		ID:    "MSpanInuse",
@@ -235,45 +240,60 @@ func (as *AgentStorage) PopulateMetricStruct() {
 		Type:  MetricTypeGauge,
 		Value: strconv.FormatUint(as.Stats.MSpanSys, 10),
 	}
-	as.Data["MCacheInuse"] = Metric{
-		ID:    "MCacheInuse",
+	as.Data["Mallocs"] = Metric{ //
+		ID:    "Mallocs",
 		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.MCacheInuse, 10),
+		Value: strconv.FormatUint(as.Stats.Mallocs, 10),
 	}
-	as.Data["MCacheSys"] = Metric{
-		ID:    "MCacheSys",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.MCacheSys, 10),
-	}
-	as.Data["BuckHashSys"] = Metric{
-		ID:    "BuckHashSys",
+	as.Data["NextGC"] = Metric{
+		ID:    "NextGC",
 		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.BuckHashSys, 10),
+		Value: strconv.FormatUint(as.Stats.NextGC, 10),
 	}
-	as.Data["GCSys"] = Metric{
-		ID:    "GCSys",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.GCSys, 10),
+	as.Data["NumForcedGC"] = Metric{
+		ID:    "NumForcedGC",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(uint64(as.Stats.NumForcedGC), 10),
+	}
+	as.Data["NumGC"] = Metric{
+		ID:    "NumGC",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(uint64(as.Stats.NumGC), 10),
 	}
 	as.Data["OtherSys"] = Metric{
 		ID:    "OtherSys",
 		Type:  MetricTypeGauge,
 		Value: strconv.FormatUint(as.Stats.OtherSys, 10),
 	}
-	as.Data["NextGC"] = Metric{
-		ID:    "NextGC",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.NextGC, 10),
-	}
-	as.Data["LastGC"] = Metric{
-		ID:    "LastGC",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.LastGC, 10),
-	}
 	as.Data["PauseTotalNs"] = Metric{
 		ID:    "PauseTotalNs",
-		Type:  MetricTypeCounter,
+		Type:  MetricTypeGauge,
 		Value: strconv.FormatUint(as.Stats.PauseTotalNs, 10),
+	}
+	as.Data["StackInuse"] = Metric{
+		ID:    "StackInuse",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.StackInuse, 10),
+	}
+	as.Data["StackSys"] = Metric{
+		ID:    "StackSys",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.StackSys, 10),
+	}
+	as.Data["Sys"] = Metric{ //
+		ID:    "Sys",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.Sys, 10),
+	}
+	as.Data["PollCount"] = Metric{ //
+		ID:    "PollCount",
+		Type:  MetricTypeCounter,
+		Value: strconv.FormatUint(as.Stats.Sys, 10),
+	}
+	as.Data["RandomValue"] = Metric{ //
+		ID:    "RandomValue",
+		Type:  MetricTypeGauge,
+		Value: strconv.FormatUint(as.Stats.Sys, 10),
 	}
 
 }

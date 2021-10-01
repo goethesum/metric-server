@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"runtime"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -27,34 +27,33 @@ const (
 
 type Metric struct {
 	ID    string     `json:"id"`
-	Type  MetricType `json:"type"`
-	Value string     `json:"value"`
+	MType MetricType `json:"type"`
+	Delta int64      `json:"delta,omitempty"`
+	Value float64    `json:"value,omitempty"`
 }
 
 func (m Metric) MarshalJSON() (data []byte, err error) {
 	switch {
-	case m.Type == MetricTypeCounter:
-		digit, _ := strconv.Atoi(m.Value)
+	case m.MType == MetricTypeCounter:
 		MetricValue := &struct {
 			ID    string     `json:"ID"`
-			Type  MetricType `json:"type"`
-			Value int        `json:"delta"`
+			MType MetricType `json:"type"`
+			Delta int64      `json:"delta"`
 		}{
 			ID:    m.ID,
-			Type:  m.Type,
-			Value: digit,
+			MType: m.MType,
+			Delta: m.Delta,
 		}
 		return json.Marshal(MetricValue)
-	case m.Type == MetricTypeGauge:
-		digit, _ := strconv.ParseFloat(m.Value, 64)
+	case m.MType == MetricTypeGauge:
 		MetricDelta := &struct {
 			ID    string     `json:"ID"`
-			Type  MetricType `json:"type"`
+			MType MetricType `json:"type"`
 			Value float64    `json:"value"`
 		}{
 			ID:    m.ID,
-			Type:  m.Type,
-			Value: digit,
+			MType: m.MType,
+			Value: m.Value,
 		}
 		return json.Marshal(MetricDelta)
 	default:
@@ -74,13 +73,13 @@ func (m *Metric) UnmarshalJSON(data []byte) error {
 	// counter struct
 	aliasDelta := &struct {
 		ID    string `json:"id"`
-		Type  string `json:"type"`
-		Value int    `json:"delta"`
+		MType string `json:"type"`
+		Delta int64  `json:"delta"`
 	}{}
 	// gauge struct
 	aliasValue := &struct {
 		ID    string  `json:"id"`
-		Type  string  `json:"type"`
+		MType string  `json:"type"`
 		Value float64 `json:"value"`
 	}{}
 
@@ -90,20 +89,19 @@ func (m *Metric) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(data, &aliasDelta); err != nil {
 			return err
 		}
-		fmt.Println(aliasDelta)
 		m.ID = aliasDelta.ID
-		m.Type = MetricType(aliasDelta.Type)
-		m.Value = strconv.Itoa(aliasDelta.Value)
-		fmt.Println(m)
+		m.MType = MetricType(aliasDelta.MType)
+		m.Delta = aliasDelta.Delta
+
 	case v["type"].(string) == string(MetricTypeGauge):
 		if err := json.Unmarshal(data, &aliasValue); err != nil {
 			return err
 		}
 		fmt.Println(aliasValue)
 		m.ID = aliasValue.ID
-		m.Type = MetricType(aliasValue.Type)
-		m.Value = fmt.Sprint(aliasValue.Value)
-		fmt.Println(m)
+		m.MType = MetricType(aliasValue.MType)
+		m.Value = aliasValue.Value
+
 	}
 	return nil
 }
@@ -113,40 +111,16 @@ type AgentStorage struct {
 	Data  map[string]Metric
 }
 
-func ParseMetricEntityFromRequest(r *http.Request) (*Metric, error) {
-	m := new(Metric)
-
-	if m.ID = r.URL.Query().Get(queryKeyMetricID); m.ID == "" {
-		return nil, errors.New("empty \"id\" query param")
-	}
-	if m.Type = MetricType(r.URL.Query().Get(queryKeyMetricType)); m.Type == "" {
-		return nil, errors.New("empty \"type\" query param")
-	}
-	if m.Value = r.URL.Query().Get(queryKeyMetricValue); m.Value == "" {
-		return nil, errors.New("empty \"value\" query param")
-	}
-
-	if m.Type != MetricTypeGauge && m.Type != MetricTypeCounter {
-		return nil, errors.New("missmatched type")
-	}
-
-	return m, nil
-}
-
 func ParseMetricEntityFromURL(r *http.Request) (*Metric, error) {
 	m := new(Metric)
 
 	if m.ID = chi.URLParam(r, queryKeyMetricID); m.ID == "" {
 		return nil, errors.New("empty \"id\" query param")
 	}
-	if m.Type = MetricType(chi.URLParam(r, queryKeyMetricType)); m.Type == "" {
+	if m.MType = MetricType(chi.URLParam(r, queryKeyMetricType)); m.MType == "" {
 		return nil, errors.New("empty \"type\" query param")
 	}
-	if m.Value = chi.URLParam(r, queryKeyMetricValue); m.Value == "" {
-		return nil, errors.New("empty \"value\" query param")
-	}
-
-	if m.Type != MetricTypeGauge && m.Type != MetricTypeCounter {
+	if m.MType != MetricTypeGauge && m.MType != MetricTypeCounter {
 		return nil, errors.New("missmatched type")
 	}
 
@@ -154,146 +128,147 @@ func ParseMetricEntityFromURL(r *http.Request) (*Metric, error) {
 }
 
 func (as *AgentStorage) PopulateMetricStruct() {
+
 	runtime.ReadMemStats(&as.Stats)
 	as.Data["Alloc"] = Metric{
 		ID:    "Alloc",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Alloc, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.Alloc),
 	}
 	as.Data["BuckHashSys"] = Metric{
 		ID:    "BuckHashSys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.BuckHashSys, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.BuckHashSys),
 	}
 	as.Data["GCSys"] = Metric{
 		ID:    "GCSys",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.GCSys, 10),
+		MType: MetricTypeCounter,
+		Value: float64(as.Stats.GCSys),
 	}
 	as.Data["GCCPUFraction"] = Metric{
 		ID:    "GCCPUFraction",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(uint64(as.Stats.GCCPUFraction), 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.GCCPUFraction),
 	}
 	as.Data["Frees"] = Metric{
 		ID:    "Frees",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.Frees, 10),
+		MType: MetricTypeCounter,
+		Value: float64(as.Stats.Frees),
 	}
 	as.Data["HeapAlloc"] = Metric{
 		ID:    "HeapAlloc",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.HeapAlloc, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.HeapAlloc),
 	}
 	as.Data["HeapIdle"] = Metric{
 		ID:    "HeapIdle",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.HeapIdle, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.HeapIdle),
 	}
 	as.Data["HeapInuse"] = Metric{
 		ID:    "HeapInuse",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.HeapInuse, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.HeapInuse),
 	}
 	as.Data["HeapObjects"] = Metric{
 		ID:    "HeapObjects",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.HeapObjects, 10),
+		MType: MetricTypeCounter,
+		Value: float64(as.Stats.HeapObjects),
 	}
 	as.Data["HeapReleased"] = Metric{
 		ID:    "HeapReleased",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.HeapReleased, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.HeapReleased),
 	}
 	as.Data["HeapSys"] = Metric{
 		ID:    "HeapSys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.HeapSys, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.HeapSys),
 	}
 	as.Data["LastGC"] = Metric{
 		ID:    "LastGC",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.LastGC, 10),
+		MType: MetricTypeCounter,
+		Value: float64(as.Stats.LastGC),
 	}
 	as.Data["Lookups"] = Metric{ //
 		ID:    "Lookups",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Lookups, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.Lookups),
 	}
 	as.Data["MCacheInuse"] = Metric{
 		ID:    "MCacheInuse",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.MCacheInuse, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.MCacheInuse),
 	}
 	as.Data["MCacheSys"] = Metric{
 		ID:    "MCacheSys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.MCacheSys, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.MCacheSys),
 	}
 	as.Data["MSpanInuse"] = Metric{
 		ID:    "MSpanInuse",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.MSpanInuse, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.MSpanInuse),
 	}
 	as.Data["MSpanSys"] = Metric{
 		ID:    "MSpanSys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.MSpanSys, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.MSpanSys),
 	}
 	as.Data["Mallocs"] = Metric{ //
 		ID:    "Mallocs",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Mallocs, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.Mallocs),
 	}
 	as.Data["NextGC"] = Metric{
 		ID:    "NextGC",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.NextGC, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.NextGC),
 	}
 	as.Data["NumForcedGC"] = Metric{
 		ID:    "NumForcedGC",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(uint64(as.Stats.NumForcedGC), 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.NumForcedGC),
 	}
 	as.Data["NumGC"] = Metric{
 		ID:    "NumGC",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(uint64(as.Stats.NumGC), 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.NumGC),
 	}
 	as.Data["OtherSys"] = Metric{
 		ID:    "OtherSys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.OtherSys, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.OtherSys),
 	}
 	as.Data["PauseTotalNs"] = Metric{
 		ID:    "PauseTotalNs",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.PauseTotalNs, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.PauseTotalNs),
 	}
 	as.Data["StackInuse"] = Metric{
 		ID:    "StackInuse",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.StackInuse, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.StackInuse),
 	}
 	as.Data["StackSys"] = Metric{
 		ID:    "StackSys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.StackSys, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.StackSys),
 	}
 	as.Data["Sys"] = Metric{ //
 		ID:    "Sys",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Sys, 10),
+		MType: MetricTypeGauge,
+		Value: float64(as.Stats.Sys),
 	}
 	as.Data["PollCount"] = Metric{ //
 		ID:    "PollCount",
-		Type:  MetricTypeCounter,
-		Value: strconv.FormatUint(as.Stats.Sys, 10),
+		MType: MetricTypeCounter,
+		Delta: 0,
 	}
 	as.Data["RandomValue"] = Metric{ //
 		ID:    "RandomValue",
-		Type:  MetricTypeGauge,
-		Value: strconv.FormatUint(as.Stats.Sys, 10),
+		MType: MetricTypeGauge,
+		Value: rand.Float64(),
 	}
 
 }

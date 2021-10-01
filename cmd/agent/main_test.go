@@ -28,8 +28,8 @@ func TestMetricSend(t *testing.T) {
 	}
 	testMetric := &metric.Metric{
 		ID:    "test",
-		Type:  metric.MetricTypeCounter,
-		Value: "4321",
+		MType: metric.MetricTypeCounter,
+		Value: 4321,
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

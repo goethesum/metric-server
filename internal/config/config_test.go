@@ -15,8 +15,8 @@ var testCs = &ConfigServer{
 	Storage: map[string]*metric.Metric{
 		"test": {
 			ID:    "test",
-			Type:  metric.MetricTypeCounter,
-			Value: "4343",
+			MType: metric.MetricTypeCounter,
+			Value: 456,
 		},
 	},
 	Mutex: &sync.Mutex{},
@@ -48,7 +48,7 @@ var theTestsPost = struct {
 
 func getRouter(cs *ConfigServer) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/update", cs.PostHandlerMetrics)
+	mux.HandleFunc("/update", cs.PostHandlerMetricByURL)
 	mux.HandleFunc("/", cs.GetMetricsAll)
 
 	return mux
@@ -83,7 +83,7 @@ func TestHandlerPost(t *testing.T) {
 	request := httptest.NewRequest("POST", theTestsPost.url, buf)
 
 	w := httptest.NewRecorder()
-	h := http.HandlerFunc(testCs.PostHandlerMetrics)
+	h := http.HandlerFunc(testCs.PostHandlerMetricByURL)
 	h.ServeHTTP(w, request)
 
 	resp := w.Result()

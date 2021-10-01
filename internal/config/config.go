@@ -29,27 +29,6 @@ type ConfigServer struct {
 	*sync.Mutex
 }
 
-// old post handler for query params
-func (cs *ConfigServer) PostHandlerMetrics(w http.ResponseWriter, r *http.Request) {
-
-	m, err := metric.ParseMetricEntityFromRequest(r)
-
-	if err != nil {
-		if err.Error() == "missmatched type" {
-			log.Println(err)
-			http.Error(w, fmt.Sprint(err), http.StatusNotImplemented)
-			return
-		} else {
-			log.Println(err)
-			http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
-			return
-		}
-	}
-	ID := r.URL.Query().Get("id")
-	cs.Storage[ID] = m
-
-}
-
 func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
 	m := new(metric.Metric)
 	fmt.Println(r.Body)
@@ -80,15 +59,6 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 	}
 	ID := chi.URLParam(r, "id")
 	cs.Storage[ID] = m
-
-}
-
-func (cs *ConfigServer) GetMetricsByID(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if err := json.NewEncoder(w).Encode(cs.Storage[id]); err != nil {
-		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
-		return
-	}
 
 }
 
@@ -133,19 +103,12 @@ func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Return metric data in JSON
+// Return metrics data in html
 func (cs *ConfigServer) GetMetricsAll(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(cs.Storage)
-	for i, e := range cs.Storage {
-		fmt.Println(*e, i)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	for _, v := range cs.Storage {
+		fmt.Fprintf(w, "%v<br>", *v)
 	}
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
-	if err := enc.Encode(cs.Storage); err != nil {
-		log.Printf("unable to marshal the struct in GetMetricaAll %s", err)
-		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
-	}
-
 }
 
 func (cs *ConfigServer) GetMetricsByKey(ctx context.Context, key string) (*metric.Metric, error) {

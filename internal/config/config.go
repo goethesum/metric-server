@@ -63,7 +63,6 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 }
 
 // GetMetricsByValue return metrics via GET /value/{type}/{id}
-
 func (cs *ConfigServer) GetMetricsByValue(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "type")
 	if metricType != string(metric.MetricTypeGauge) && metricType != string(metric.MetricTypeCounter) {
@@ -79,6 +78,7 @@ func (cs *ConfigServer) GetMetricsByValue(w http.ResponseWriter, r *http.Request
 
 }
 
+// just debug function
 func (cs *ConfigServer) GetCheck(w http.ResponseWriter, r *http.Request) {
 	url := r.RequestURI
 	fmt.Fprintf(w, "hello from %s", url)

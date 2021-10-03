@@ -24,14 +24,13 @@ type ConfigAgent struct {
 
 type ConfigServer struct {
 	PortNumber  string `env:"SERVER_ADDRESS" envDefault:"0.0.0.0:8080"`
-	Storage     map[string]*metric.Metric
+	Storage     map[string]metric.Metric
 	FileStorage string `env:"FILE_STORAGE_PATH" envDefault:"./history"`
 	*sync.Mutex
 }
 
 func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
-	m := new(metric.Metric)
-	fmt.Println(r.Body)
+	m := metric.Metric{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&m); err != nil {
 		log.Printf("unable to decode params in PostHandlerMetricsJSON, %s", err)
@@ -111,17 +110,17 @@ func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 func (cs *ConfigServer) GetMetricsAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	for _, v := range cs.Storage {
-		fmt.Fprintf(w, "%v<br>", *v)
+		fmt.Fprintf(w, "%v<br>", v)
 	}
 }
 
-func (cs *ConfigServer) GetMetricsByKey(ctx context.Context, key string) (*metric.Metric, error) {
+func (cs *ConfigServer) GetMetricsByKey(ctx context.Context, key string) (metric.Metric, error) {
 	cs.Lock()
 	defer cs.Unlock()
 
 	m, ok := cs.Storage[key]
 	if !ok {
-		return nil, errors.New("metric not found")
+		return metric.Metric{}, errors.New("metric not found")
 	}
 	return m, nil
 

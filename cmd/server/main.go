@@ -24,7 +24,7 @@ func main() {
 
 	// Setup environmet
 	confServ = &config.ConfigServer{
-		Storage: make(map[string]*metric.Metric),
+		Storage: make(map[string]metric.Metric),
 		Mutex:   &sync.Mutex{},
 	}
 	// read env variable

@@ -12,7 +12,7 @@ import (
 )
 
 var testCs = &ConfigServer{
-	Storage: map[string]*metric.Metric{
+	Storage: map[string]metric.Metric{
 		"test": {
 			ID:    "test",
 			MType: metric.MetricTypeCounter,

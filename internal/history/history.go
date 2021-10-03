@@ -60,7 +60,7 @@ func (r *restorer) Close() error {
 	return r.file.Close()
 }
 
-func (s *saver) WriteMetric(savedMetric *metric.Metric) error {
+func (s *saver) WriteMetric(savedMetric metric.Metric) error {
 	data, err := json.Marshal(&savedMetric)
 	if err != nil {
 		return err
@@ -74,13 +74,13 @@ func (s *saver) WriteMetric(savedMetric *metric.Metric) error {
 	return s.writer.Flush()
 }
 
-func (r *restorer) RestoreMetrics() (map[string]*metric.Metric, error) {
-	store := make(map[string]*metric.Metric)
+func (r *restorer) RestoreMetrics() (map[string]metric.Metric, error) {
+	store := make(map[string]metric.Metric)
 	for r.scanner.Scan() {
-		item := &metric.Metric{}
+		item := metric.Metric{}
 		data := r.scanner.Bytes()
 
-		err := json.Unmarshal(data, item)
+		err := json.Unmarshal(data, &item)
 		if err != nil {
 			return nil, err
 		}

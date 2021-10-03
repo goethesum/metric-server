@@ -115,17 +115,17 @@ type AgentStorage struct {
 	Data  map[string]Metric
 }
 
-func ParseMetricEntityFromURL(r *http.Request) (*Metric, error) {
-	m := new(Metric)
+func ParseMetricEntityFromURL(r *http.Request) (Metric, error) {
+	m := Metric{}
 
 	if m.ID = chi.URLParam(r, queryKeyMetricID); m.ID == "" {
-		return nil, errors.New("empty \"id\" query param")
+		return Metric{}, errors.New("empty \"id\" query param")
 	}
 	if m.MType = MetricType(chi.URLParam(r, queryKeyMetricType)); m.MType == "" {
-		return nil, errors.New("empty \"type\" query param")
+		return Metric{}, errors.New("empty \"type\" query param")
 	}
 	if m.MType != MetricTypeGauge && m.MType != MetricTypeCounter {
-		return nil, errors.New("missmatched type")
+		return Metric{}, errors.New("missmatched type")
 	}
 
 	return m, nil

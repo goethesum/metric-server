@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"syscall"
 	"time"
 
 	"github.com/caarlos0/env/v6"
@@ -71,15 +72,15 @@ func main() {
 	// Create Ticker
 	tick := time.NewTicker(conf.TimeInterval * time.Second)
 	defer tick.Stop()
-	done := make(chan bool)
+	done := make(chan struct{})
 
 	// Handling signal, waiting for graceful shutdown
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		for sig := range sigCh {
 			log.Println("Recieved sig:", sig)
-			done <- true
+			done <- struct{}{}
 		}
 
 	}()

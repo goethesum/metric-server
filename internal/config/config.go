@@ -47,13 +47,13 @@ func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Re
 func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
 	m, err := metric.ParseMetricEntityFromURL(r)
 	if err != nil {
-		if err.Error() == "missmatched type" {
+		if err == metric.ErrMissmatchedType {
 			log.Println(err)
-			http.Error(w, fmt.Sprint(err), http.StatusNotImplemented)
+			http.Error(w, "bad request", http.StatusBadRequest)
 			return
 		} else {
 			log.Println(err)
-			http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
+			http.Error(w, "bad request", http.StatusBadRequest)
 			return
 		}
 	}
@@ -67,11 +67,15 @@ func (cs *ConfigServer) GetMetricsByValue(w http.ResponseWriter, r *http.Request
 	metricType := chi.URLParam(r, "type")
 	if metricType != string(metric.MetricTypeGauge) && metricType != string(metric.MetricTypeCounter) {
 		log.Println("missmatched type")
-		http.Error(w, "missmatched type", http.StatusNotImplemented)
+		http.Error(w, "missmatched type", http.StatusBadRequest)
 		return
 	}
 	ID := chi.URLParam(r, "id")
-	if err := json.NewEncoder(w).Encode(cs.Storage[ID]); err != nil {
+	metric, ok := cs.Storage[ID]
+	if !ok {
+		http.Error(w, "not found", http.StatusNotFound)
+	}
+	if err := json.NewEncoder(w).Encode(&metric); err != nil {
 		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
 		return
 	}

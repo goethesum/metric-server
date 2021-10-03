@@ -14,6 +14,10 @@ import (
 
 type MetricType string
 
+var (
+	ErrMissmatchedType = errors.New("missmatched type")
+)
+
 const (
 	MetricTypeGauge   MetricType = "gauge"
 	MetricTypeCounter MetricType = "counter"

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
@@ -38,7 +39,7 @@ func main() {
 
 	// Handling signal, waiting for graceful shutdown
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		for sig := range sigCh {
 			log.Println("Recieved sig:", sig)
@@ -68,8 +69,10 @@ func main() {
 func router(cs *config.ConfigServer) http.Handler {
 	mux := chi.NewRouter()
 
-	mux.Use(middleware.Recoverer,
-		middleware.Logger)
+	mux.Use(
+		middleware.Recoverer,
+		middleware.Logger,
+	)
 
 	mux.Route("/", func(mux chi.Router) {
 		mux.Get("/", cs.GetMetricsAll)

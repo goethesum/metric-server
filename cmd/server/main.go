@@ -39,7 +39,7 @@ func main() {
 
 	// Handling signal, waiting for graceful shutdown
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	go func() {
 		for sig := range sigCh {
 			log.Println("Recieved sig:", sig)

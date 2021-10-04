@@ -194,7 +194,7 @@ func (as *AgentStorage) PopulateMetricStruct() {
 		MType: MetricTypeCounter,
 		Value: float64(as.Stats.LastGC),
 	}
-	as.Data["Lookups"] = Metric{ //
+	as.Data["Lookups"] = Metric{
 		ID:    "Lookups",
 		MType: MetricTypeGauge,
 		Value: float64(as.Stats.Lookups),
@@ -219,7 +219,7 @@ func (as *AgentStorage) PopulateMetricStruct() {
 		MType: MetricTypeGauge,
 		Value: float64(as.Stats.MSpanSys),
 	}
-	as.Data["Mallocs"] = Metric{ //
+	as.Data["Mallocs"] = Metric{
 		ID:    "Mallocs",
 		MType: MetricTypeGauge,
 		Value: float64(as.Stats.Mallocs),
@@ -259,17 +259,17 @@ func (as *AgentStorage) PopulateMetricStruct() {
 		MType: MetricTypeGauge,
 		Value: float64(as.Stats.StackSys),
 	}
-	as.Data["Sys"] = Metric{ //
+	as.Data["Sys"] = Metric{
 		ID:    "Sys",
 		MType: MetricTypeGauge,
 		Value: float64(as.Stats.Sys),
 	}
-	as.Data["PollCount"] = Metric{ //
+	as.Data["PollCount"] = Metric{
 		ID:    "PollCount",
 		MType: MetricTypeCounter,
 		Delta: 0,
 	}
-	as.Data["RandomValue"] = Metric{ //
+	as.Data["RandomValue"] = Metric{
 		ID:    "RandomValue",
 		MType: MetricTypeGauge,
 		Value: rand.Float64(),

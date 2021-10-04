@@ -17,9 +17,10 @@ import (
 )
 
 type ConfigAgent struct {
-	Server        string `env:"PUSH_ADDRESS" envDefault:"http://localhost:8080"`
-	URLMetricPush string `env:"URL_PATH" envDefault:"/update"`
-	TimeInterval  time.Duration
+	Server         string `env:"PUSH_ADDRESS" envDefault:"http://localhost:8080"`
+	URLMetricPush  string `env:"URL_PATH" envDefault:"/update"`
+	PollInterval   time.Duration
+	ReportInterval time.Duration
 }
 
 type ConfigServer struct {

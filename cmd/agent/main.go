@@ -47,7 +47,8 @@ func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*r
 
 func main() {
 	conf := &config.ConfigAgent{
-		TimeInterval: 5,
+		PollInterval:   2,
+		ReportInterval: 10,
 	}
 
 	// read env variable
@@ -68,15 +69,18 @@ func main() {
 
 	// make endpoint
 	endpoint := conf.Server + conf.URLMetricPush
-	fmt.Println(endpoint)
-	// Create Ticker
-	tick := time.NewTicker(conf.TimeInterval * time.Second)
-	defer tick.Stop()
-	done := make(chan struct{})
+	log.Println(endpoint)
+	// Create Ticker for populating
+	tickPoll := time.NewTicker(conf.PollInterval * time.Second)
+	defer tickPoll.Stop()
+	// Create Ticker for report
+	tickReport := time.NewTicker(conf.ReportInterval * time.Second)
+	defer tickReport.Stop()
 
 	// Handling signal, waiting for graceful shutdown
+	done := make(chan struct{})
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
 		for sig := range sigCh {
 			log.Println("Recieved sig:", sig)
@@ -84,14 +88,35 @@ func main() {
 		}
 
 	}()
-	// Start handling some logic on each tick
+	log.Println("check")
+
+	// Poll every 2s
+	go func() {
+		for {
+			select {
+			case <-done:
+				fmt.Println("Stopped")
+				return
+			case <-tickPoll.C:
+				mStorage.PopulateMetricStruct()
+				log.Println("Polled")
+				inc, ok := mStorage.Data["Pollcount"]
+				if !ok {
+					log.Println("Value Pollcount doesn't exist")
+				}
+				inc.Delta += 1
+				mStorage.Data["PollCount"] = inc
+			}
+		}
+	}()
+
+	// Report every 10s
 	for {
 		select {
 		case <-done:
 			fmt.Println("Stopped")
 			return
-		case <-tick.C:
-			mStorage.PopulateMetricStruct()
+		case <-tickReport.C:
 			for _, v := range mStorage.Data {
 				resp, err := client.MetricSend(endpoint, v)
 
@@ -106,6 +131,6 @@ func main() {
 			}
 
 		}
-
 	}
+
 }

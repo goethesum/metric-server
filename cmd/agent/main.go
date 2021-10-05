@@ -100,9 +100,9 @@ func main() {
 			case <-tickPoll.C:
 				mStorage.PopulateMetricStruct()
 				log.Println("Polled")
-				inc, ok := mStorage.Data["Pollcount"]
+				inc, ok := mStorage.Data["PollCount"]
 				if !ok {
-					log.Println("Value Pollcount doesn't exist")
+					log.Println("Value PollCount doesn't exist")
 				}
 				inc.Delta += 1
 				mStorage.Data["PollCount"] = inc

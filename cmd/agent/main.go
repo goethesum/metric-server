@@ -29,8 +29,6 @@ func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*r
 		log.Printf("error during marshaling in MetricSend %s", err)
 	}
 	resp, err := client.client.SetTimeout(1*time.Second).
-		SetRetryCount(2).
-		SetRetryWaitTime(1*time.Second).
 		R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonMetric).
@@ -46,6 +44,7 @@ func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*r
 }
 
 func main() {
+
 	conf := &config.ConfigAgent{
 		PollInterval:   2,
 		ReportInterval: 10,

@@ -181,3 +181,16 @@
 {"ID":"GCSys","type":"counter","delta":0}
 {"ID":"Frees","type":"counter","delta":0}
 {"ID":"LastGC","type":"counter","delta":0}
+{"ID":"OtherSys","type":"gauge","value":0}
+{"ID":"OtherSys","type":"gauge","value":0}
+{"ID":"OtherSys","type":"gauge","value":0}
+{"ID":"OtherSys","type":"gauge","value":0}
+{"ID":"OtherSys","type":"gauge","value":0}
+{"ID":"NextGC","type":"gauge","value":0}
+{"id":"NextGC","type":"gauge"}
+{"id":"NextGC","type":"gauge"}
+{"id":"NextGC","type":"gauge"}
+{"id":"NextGC","type":"gauge"}
+{"id":"NextGC","type":"gauge"}
+{"id":"NextGC","type":"gauge"}
+{"id":"NextGC","type":"gauge"}

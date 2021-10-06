@@ -83,8 +83,8 @@ func router(cs *config.ConfigServer) http.Handler {
 		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
 	})
 	mux.Route("/value", func(mux chi.Router) {
-		mux.Get("/", cs.GetCheck)
-		mux.Get("/{type}/{id}", cs.GetMetricsByValue)
+		mux.Post("/", cs.POSTMetricsByValueJSON)
+		mux.Get("/{type}/{id}", cs.GetMetricsByValueURI)
 	})
 
 	return mux

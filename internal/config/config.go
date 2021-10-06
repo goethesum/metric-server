@@ -63,7 +63,7 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 }
 
 // GetMetricsByValue return metrics via GET /value/{type}/{id}
-func (cs *ConfigServer) GetMetricsByValue(w http.ResponseWriter, r *http.Request) {
+func (cs *ConfigServer) GetMetricsByValueURI(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "type")
 	if metricType != string(metric.MetricTypeGauge) && metricType != string(metric.MetricTypeCounter) {
 		log.Println("missmatched type")
@@ -82,10 +82,26 @@ func (cs *ConfigServer) GetMetricsByValue(w http.ResponseWriter, r *http.Request
 
 }
 
-// just debug function
-func (cs *ConfigServer) GetCheck(w http.ResponseWriter, r *http.Request) {
-	url := r.RequestURI
-	fmt.Fprintf(w, "hello from %s", url)
+// POSTMetricsByValue return metrics via JSON
+func (cs *ConfigServer) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Request) {
+	m := metric.Metric{}
+	enc := json.NewDecoder(r.Body)
+	if err := enc.Decode(&m); err != nil {
+		log.Println(err)
+		http.Error(w, "wrong format", http.StatusBadRequest)
+	}
+	fmt.Println(m)
+	metric, ok := cs.Storage[m.ID]
+	fmt.Println(metric)
+	if !ok {
+		http.Error(w, "not found", http.StatusNotFound)
+	}
+	if err := json.NewEncoder(w).Encode(&metric); err != nil {
+		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+
 }
 
 // Return metric data in JSON by Requested URI

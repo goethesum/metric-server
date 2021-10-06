@@ -83,7 +83,10 @@ func main() {
 	go func() {
 		for sig := range sigCh {
 			log.Println("Recieved sig:", sig)
-			done <- struct{}{}
+			tickPoll.Stop()
+			tickReport.Stop()
+			close(done)
+			return
 		}
 
 	}()
@@ -117,15 +120,20 @@ func main() {
 			return
 		case <-tickReport.C:
 			for _, v := range mStorage.Data {
-				resp, err := client.MetricSend(endpoint, v)
+				select {
+				case <-done:
+					return
+				default:
+					resp, err := client.MetricSend(endpoint, v)
 
-				if err != nil {
-					log.Println(err)
-					log.Println("Failed to send", v.ID)
+					if err != nil {
+						log.Println(err)
+						log.Println("Failed to send", v.ID)
 
-				}
-				if resp != nil {
-					log.Println(resp.StatusCode(), v.ID)
+					}
+					if resp != nil {
+						log.Println(resp.StatusCode(), v.ID)
+					}
 				}
 			}
 

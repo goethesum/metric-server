@@ -47,13 +47,19 @@ func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Re
 func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
 	m, err := metric.ParseMetricEntityFromURL(r)
 	if err != nil {
-		if err == metric.ErrMissmatchedType {
+		switch {
+		case err == metric.ErrMissmatchedType:
 			log.Println(err)
-			http.Error(w, "bad request", http.StatusBadRequest)
+			http.Error(w, "Wrong type", http.StatusBadRequest)
 			return
-		} else {
+
+		case err == metric.ErrDeltaAssign:
 			log.Println(err)
-			http.Error(w, "bad request", http.StatusBadRequest)
+			http.Error(w, "Wrong delta", http.StatusBadRequest)
+			return
+		case err == metric.ErrValueAssign:
+			log.Println(err)
+			http.Error(w, "Wrong value", http.StatusBadRequest)
 			return
 		}
 	}

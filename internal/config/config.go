@@ -61,6 +61,10 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 			log.Println(err)
 			http.Error(w, "Wrong value", http.StatusBadRequest)
 			return
+		default:
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 	}
 	ID := chi.URLParam(r, "id")

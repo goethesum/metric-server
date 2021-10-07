@@ -116,7 +116,6 @@ type AgentStorage struct {
 
 func ParseMetricEntityFromURL(r *http.Request) (Metric, error) {
 	m := Metric{}
-
 	if m.ID = chi.URLParam(r, queryKeyMetricID); m.ID == "" {
 		return Metric{}, errors.New("empty \"id\" query param")
 	}
@@ -126,14 +125,16 @@ func ParseMetricEntityFromURL(r *http.Request) (Metric, error) {
 	if m.MType != MetricTypeGauge && m.MType != MetricTypeCounter {
 		return Metric{}, errors.New("missmatched type")
 	}
+
 	switch {
 	case m.MType == MetricTypeCounter:
 		v := chi.URLParam(r, queryKeyMetricValue)
 		m.Delta, ErrDeltaAssign = strconv.ParseInt(v, 10, 64)
-
+		return Metric{}, ErrDeltaAssign
 	case m.MType == MetricTypeGauge:
 		v := chi.URLParam(r, queryKeyMetricValue)
 		m.Value, ErrValueAssign = strconv.ParseFloat(v, 64)
+		return Metric{}, ErrValueAssign
 	}
 
 	return m, nil

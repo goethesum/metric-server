@@ -97,6 +97,7 @@ func TestHandlerPost(t *testing.T) {
 	if err != nil {
 		log.Println(err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != theTestsPost.expectedStatusCode {
 		t.Errorf("for %s, expected %d but got %d", theTestsPost.name, theTestsPost.expectedStatusCode, resp.StatusCode)

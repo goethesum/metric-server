@@ -123,7 +123,7 @@ func ParseMetricEntityFromURL(r *http.Request) (Metric, error) {
 		return Metric{}, errors.New("empty \"type\" query param")
 	}
 	if m.MType != MetricTypeGauge && m.MType != MetricTypeCounter {
-		return Metric{}, errors.New("missmatched type")
+		return Metric{}, ErrMissmatchedType
 	}
 
 	switch {

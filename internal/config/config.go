@@ -50,7 +50,7 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 		switch {
 		case err == metric.ErrMissmatchedType:
 			log.Println(err)
-			http.Error(w, "Wrong type", http.StatusBadRequest)
+			http.Error(w, "Wrong type", http.StatusNotImplemented)
 			return
 
 		case err == metric.ErrDeltaAssign:

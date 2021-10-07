@@ -131,13 +131,19 @@ func ParseMetricEntityFromURL(r *http.Request) (Metric, error) {
 
 	switch {
 	case m.MType == MetricTypeCounter:
+		var err error
 		v := chi.URLParam(r, queryKeyMetricValue)
-		m.Delta, ErrDeltaAssign = strconv.ParseInt(v, 10, 64)
-		return Metric{}, ErrDeltaAssign
+		m.Delta, err = strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return Metric{}, ErrDeltaAssign
+		}
 	case m.MType == MetricTypeGauge:
+		var err error
 		v := chi.URLParam(r, queryKeyMetricValue)
-		m.Value, ErrValueAssign = strconv.ParseFloat(v, 64)
-		return Metric{}, ErrValueAssign
+		m.Value, err = strconv.ParseFloat(v, 64)
+		if err != nil {
+			return Metric{}, ErrValueAssign
+		}
 	}
 
 	return m, nil

@@ -67,6 +67,7 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 			return
 		}
 	}
+	fmt.Println(m)
 	ID := chi.URLParam(r, "id")
 	cs.Storage[ID] = m
 

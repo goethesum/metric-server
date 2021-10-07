@@ -82,11 +82,16 @@ func (cs *ConfigServer) GetMetricsByValueURI(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	ID := chi.URLParam(r, "id")
-	metric, ok := cs.Storage[ID]
+	met, ok := cs.Storage[ID]
 	if !ok {
 		http.Error(w, "not found", http.StatusNotFound)
 	}
-	fmt.Fprint(w, metric)
+	switch {
+	case met.MType == metric.MetricTypeGauge:
+		fmt.Fprintf(w, "%v", met.Value)
+	case met.MType == metric.MetricTypeCounter:
+		fmt.Fprintf(w, "%v", met.Delta)
+	}
 
 }
 

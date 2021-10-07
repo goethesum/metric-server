@@ -1,13 +1,13 @@
 package config
 
 import (
-	"bytes"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"sync"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
@@ -40,9 +40,9 @@ var theTestsPost = struct {
 	method             string
 	params             []postData
 	expectedStatusCode int
-}{"PostHandlerMetrics", "/update", "POST", []postData{
-	{key: "id", value: "testMetric"},
+}{" PostHandlerMetricByURL", "/update", "POST", []postData{
 	{key: "type", value: "counter"},
+	{key: "id", value: "testMetric"},
 	{key: "value", value: "3742"},
 }, http.StatusOK}
 
@@ -54,10 +54,21 @@ func getRouter(cs *ConfigServer) http.Handler {
 	return mux
 }
 
+func getRouterChi(cs *ConfigServer) http.Handler {
+	mux := chi.NewRouter()
+	mux.Route("/update", func(mux chi.Router) {
+		mux.Get("/", cs.GetMetricsAll)
+		mux.Post("/", cs.PostHandlerMetricsJSON)
+		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
+	})
+	return mux
+}
+
 func TestHandlerGet(t *testing.T) {
 
-	routes := getRouter(testCs)
-	ts := httptest.NewServer(routes)
+	router := getRouter(testCs)
+
+	ts := httptest.NewServer(router)
 	defer ts.Close()
 
 	request := httptest.NewRequest("GET", theTestsGet.url, nil)
@@ -73,21 +84,20 @@ func TestHandlerGet(t *testing.T) {
 
 func TestHandlerPost(t *testing.T) {
 
-	values := url.Values{}
-	for _, a := range theTestsPost.params {
-		values.Add(a.key, a.value)
+	router := getRouterChi(testCs)
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	req, err := http.NewRequest(http.MethodPost, ts.URL+"/update/counter/id/4324", nil)
+	if err != nil {
+		log.Println(err)
+	}
+	c := &http.Client{}
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Println(err)
 	}
 
-	buf := new(bytes.Buffer)
-	buf.WriteString(values.Encode())
-	request := httptest.NewRequest("POST", theTestsPost.url, buf)
-
-	w := httptest.NewRecorder()
-	h := http.HandlerFunc(testCs.PostHandlerMetricByURL)
-	h.ServeHTTP(w, request)
-
-	resp := w.Result()
-	defer resp.Body.Close()
 	if resp.StatusCode != theTestsPost.expectedStatusCode {
 		t.Errorf("for %s, expected %d but got %d", theTestsPost.name, theTestsPost.expectedStatusCode, resp.StatusCode)
 	}

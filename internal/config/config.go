@@ -100,7 +100,6 @@ func (cs *ConfigServer) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Re
 		log.Println(err)
 		http.Error(w, "wrong format", http.StatusBadRequest)
 	}
-	fmt.Println(m)
 	metric, ok := cs.Storage[m.ID]
 	fmt.Println(metric)
 	if !ok {

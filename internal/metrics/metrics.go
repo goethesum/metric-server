@@ -117,6 +117,7 @@ type AgentStorage struct {
 func ParseMetricEntityFromURL(r *http.Request) (Metric, error) {
 	m := Metric{}
 	if m.ID = chi.URLParam(r, queryKeyMetricID); m.ID == "" {
+
 		return Metric{}, errors.New("empty \"id\" query param")
 	}
 	if m.MType = MetricType(chi.URLParam(r, queryKeyMetricType)); m.MType == "" {

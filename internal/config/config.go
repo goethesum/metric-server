@@ -85,10 +85,7 @@ func (cs *ConfigServer) GetMetricsByValueURI(w http.ResponseWriter, r *http.Requ
 	if !ok {
 		http.Error(w, "not found", http.StatusNotFound)
 	}
-	if err := json.NewEncoder(w).Encode(&metric); err != nil {
-		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
-		return
-	}
+	fmt.Fprint(w, metric)
 
 }
 

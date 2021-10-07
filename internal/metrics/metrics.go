@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"runtime"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -13,6 +14,8 @@ type MetricType string
 
 var (
 	ErrMissmatchedType = errors.New("missmatched type")
+	ErrDeltaAssign     = errors.New("type insn't a int64")
+	ErrValueAssign     = errors.New("type insn't a float64")
 )
 
 const (
@@ -23,6 +26,7 @@ const (
 const (
 	queryKeyMetricID    = "id"
 	queryKeyMetricValue = "value"
+	queryKeyMetricDelta = "delta"
 	queryKeyMetricType  = "type"
 )
 
@@ -121,6 +125,15 @@ func ParseMetricEntityFromURL(r *http.Request) (Metric, error) {
 	}
 	if m.MType != MetricTypeGauge && m.MType != MetricTypeCounter {
 		return Metric{}, errors.New("missmatched type")
+	}
+	switch {
+	case m.MType == MetricTypeCounter:
+		v := chi.URLParam(r, queryKeyMetricValue)
+		m.Delta, ErrDeltaAssign = strconv.ParseInt(v, 10, 64)
+
+	case m.MType == MetricTypeGauge:
+		v := chi.URLParam(r, queryKeyMetricValue)
+		m.Value, ErrValueAssign = strconv.ParseFloat(v, 64)
 	}
 
 	return m, nil

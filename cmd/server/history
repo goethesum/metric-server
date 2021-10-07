@@ -187,10 +187,3 @@
 {"ID":"OtherSys","type":"gauge","value":0}
 {"ID":"OtherSys","type":"gauge","value":0}
 {"ID":"NextGC","type":"gauge","value":0}
-{"id":"NextGC","type":"gauge"}
-{"id":"NextGC","type":"gauge"}
-{"id":"NextGC","type":"gauge"}
-{"id":"NextGC","type":"gauge"}
-{"id":"NextGC","type":"gauge"}
-{"id":"NextGC","type":"gauge"}
-{"id":"NextGC","type":"gauge"}

@@ -44,6 +44,7 @@ func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Re
 
 }
 
+// Validate and save metrics via POST URI
 func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
 	m, err := metric.ParseMetricEntityFromURL(r)
 	if err != nil {
@@ -67,8 +68,14 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 			return
 		}
 	}
-	fmt.Println(m)
 	ID := chi.URLParam(r, "id")
+	if m.MType == metric.MetricTypeCounter {
+		id1, ok := cs.Storage[ID]
+		if ok {
+			newDelta := id1.Delta + m.Delta
+			m.Delta = newDelta
+		}
+	}
 	cs.Storage[ID] = m
 
 }

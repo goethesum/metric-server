@@ -3,7 +3,6 @@ package metric
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -92,7 +91,7 @@ func (m *Metric) UnmarshalJSON(data []byte) error {
 		Delta *int64     `json:"delta,omitempty"`
 		Value *float64   `json:"value,omitempty"`
 	}{}
-	fmt.Println(v)
+
 	switch {
 	case v["type"].(string) == string(MetricTypeCounter):
 

@@ -28,11 +28,13 @@ func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*r
 	if err != nil {
 		log.Printf("error during marshaling in MetricSend %s", err)
 	}
-	resp, err := client.client.SetTimeout(1*time.Second).
+
+	resp, err := client.client.SetCloseConnection(true).
 		R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonMetric).
 		Post(endpoint)
+
 	if err != nil {
 		return nil, fmt.Errorf("unable to send POST request:%w", err)
 	}

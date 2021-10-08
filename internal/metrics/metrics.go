@@ -3,6 +3,7 @@ package metric
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -40,33 +41,41 @@ type Metric struct {
 }
 
 func (m Metric) MarshalJSON() (data []byte, err error) {
+
+	MetricJSON := &struct {
+		ID    string     `json:"id"`
+		Mtype MetricType `json:"type"`
+		Delta *int64     `json:"delta,omitempty"`
+		Value *float64   `json:"value,omitempty"`
+	}{}
+
 	switch {
+
 	case m.MType == MetricTypeCounter:
-		MetricValue := &struct {
-			ID    string     `json:"ID"`
-			MType MetricType `json:"type"`
-			Delta int64      `json:"delta"`
-		}{
-			ID:    m.ID,
-			MType: m.MType,
-			Delta: m.Delta,
-		}
-		return json.Marshal(MetricValue)
+
+		MetricJSON.ID = m.ID
+		MetricJSON.Mtype = m.MType
+		MetricJSON.Delta = &m.Delta
+		MetricJSON.Value = nil
+
+		marshMetric, err := json.Marshal(MetricJSON)
+
+		return marshMetric, err
+
 	case m.MType == MetricTypeGauge:
-		MetricDelta := &struct {
-			ID    string     `json:"ID"`
-			MType MetricType `json:"type"`
-			Value float64    `json:"value"`
-		}{
-			ID:    m.ID,
-			MType: m.MType,
-			Value: m.Value,
-		}
-		return json.Marshal(MetricDelta)
-	default:
-		return nil, errors.New("missmatched type in MarshalJSON")
+
+		MetricJSON.ID = m.ID
+		MetricJSON.Mtype = m.MType
+		MetricJSON.Delta = nil
+		MetricJSON.Value = &m.Value
+
+		marshMetric, err := json.Marshal(MetricJSON)
+
+		return marshMetric, err
+
 	}
 
+	return nil, errors.New("missmatched type in 123 MarshalJSON")
 }
 
 func (m *Metric) UnmarshalJSON(data []byte) error {
@@ -76,38 +85,38 @@ func (m *Metric) UnmarshalJSON(data []byte) error {
 		log.Printf("error during UnamarshalJSON %s", err)
 		return err
 	}
-	// counter struct
-	aliasDelta := &struct {
-		ID    string `json:"id"`
-		MType string `json:"type"`
-		Delta int64  `json:"delta"`
-	}{}
-	// gauge struct
-	aliasValue := &struct {
-		ID    string  `json:"id"`
-		MType string  `json:"type"`
-		Value float64 `json:"value"`
-	}{}
 
+	MetricJSON := &struct {
+		ID    string     `json:"id"`
+		Mtype MetricType `json:"type"`
+		Delta *int64     `json:"delta,omitempty"`
+		Value *float64   `json:"value,omitempty"`
+	}{}
+	fmt.Println(v)
 	switch {
 	case v["type"].(string) == string(MetricTypeCounter):
 
-		if err := json.Unmarshal(data, &aliasDelta); err != nil {
+		if err := json.Unmarshal(data, &MetricJSON); err != nil {
 			return err
 		}
-		m.ID = aliasDelta.ID
-		m.MType = MetricType(aliasDelta.MType)
-		m.Delta = aliasDelta.Delta
 
+		m.ID = MetricJSON.ID
+		m.MType = MetricJSON.Mtype
+		if MetricJSON.Delta != nil {
+			m.Delta = *MetricJSON.Delta
+		}
 	case v["type"].(string) == string(MetricTypeGauge):
-		if err := json.Unmarshal(data, &aliasValue); err != nil {
+		if err := json.Unmarshal(data, &MetricJSON); err != nil {
 			return err
 		}
-		m.ID = aliasValue.ID
-		m.MType = MetricType(aliasValue.MType)
-		m.Value = aliasValue.Value
+		m.ID = MetricJSON.ID
+		m.MType = MetricJSON.Mtype
+		if MetricJSON.Value != nil {
+			m.Value = *MetricJSON.Value
+		}
 
 	}
+
 	return nil
 }
 

@@ -102,16 +102,16 @@ func (cs *ConfigServer) GetMetricsByValueURI(w http.ResponseWriter, r *http.Requ
 
 }
 
-// POSTMetricsByValue return metrics via JSON
+// POSTMetricsByValueJSON return metrics via JSON
 func (cs *ConfigServer) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Request) {
 	m := metric.Metric{}
 	enc := json.NewDecoder(r.Body)
 	if err := enc.Decode(&m); err != nil {
 		log.Println(err)
 		http.Error(w, "wrong format", http.StatusBadRequest)
+		return
 	}
 	metric, ok := cs.Storage[m.ID]
-	fmt.Println(metric)
 	if !ok {
 		http.Error(w, "not found", http.StatusNotFound)
 	}

@@ -126,7 +126,7 @@ func main() {
 				case <-done:
 					return
 				default:
-					time.Sleep(200 * time.Microsecond)
+					time.Sleep(500 * time.Microsecond)
 					resp, err := client.MetricSend(endpoint, v)
 
 					if err != nil {

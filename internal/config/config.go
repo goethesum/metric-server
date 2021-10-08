@@ -17,14 +17,14 @@ import (
 )
 
 type ConfigAgent struct {
-	Server         string `env:"PUSH_ADDRESS" envDefault:"http://localhost:8080"`
-	URLMetricPush  string `env:"URL_PATH" envDefault:"/update"`
-	PollInterval   time.Duration
-	ReportInterval time.Duration
+	Server         string        `env:"ADDRESS" envDefault:"http://localhost:8080"`
+	URLMetricPush  string        `env:"URL_PATH" envDefault:"/update"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
 }
 
 type ConfigServer struct {
-	PortNumber  string `env:"SERVER_ADDRESS" envDefault:"0.0.0.0:8080"`
+	PortNumber  string `env:"ADDRESS" envDefault:"0.0.0.0:8080"`
 	Storage     map[string]metric.Metric
 	FileStorage string `env:"FILE_STORAGE_PATH" envDefault:"./history"`
 	*sync.Mutex

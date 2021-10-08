@@ -47,15 +47,13 @@ func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*r
 
 func main() {
 
-	conf := &config.ConfigAgent{
-		PollInterval:   2,
-		ReportInterval: 10,
-	}
+	conf := &config.ConfigAgent{}
 
 	// read env variable
 	if err := env.Parse(conf); err != nil {
 		fmt.Printf("%+v\n", err)
 	}
+	fmt.Printf("%T", conf.PollInterval)
 
 	// init client
 	client := &clientHTTP{
@@ -72,10 +70,10 @@ func main() {
 	endpoint := conf.Server + conf.URLMetricPush
 	log.Println(endpoint)
 	// Create Ticker for populating
-	tickPoll := time.NewTicker(conf.PollInterval * time.Second)
+	tickPoll := time.NewTicker(conf.PollInterval)
 	defer tickPoll.Stop()
 	// Create Ticker for report
-	tickReport := time.NewTicker(conf.ReportInterval * time.Second)
+	tickReport := time.NewTicker(conf.ReportInterval)
 	defer tickReport.Stop()
 
 	// Handling signal, waiting for graceful shutdown

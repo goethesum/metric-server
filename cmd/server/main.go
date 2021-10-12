@@ -100,5 +100,6 @@ func router(s *config.Service) http.Handler {
 	return mux
 }
 
+// curl -X POST http://localhost:8080/value -H 'Content-Type: application/json' -d '{"id":"Sys","type":"gauge"}'
 // Post "http://localhost:8080/update/gauge/githubActionGauge/100"
 // Get "http://localhost:8080/value/gauge/BuckHashSys"

@@ -74,17 +74,16 @@ func (s *Service) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request)
 func (s *Service) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
 	m, err := metric.ParseMetricEntityFromURL(r)
 	if err != nil {
-		switch {
-		case err == metric.ErrMissmatchedType:
+		switch err {
+		case metric.ErrMissmatchedType:
 			log.Println(err)
 			http.Error(w, "Wrong type", http.StatusNotImplemented)
 			return
-
-		case err == metric.ErrDeltaAssign:
+		case metric.ErrDeltaAssign:
 			log.Println(err)
 			http.Error(w, "Wrong delta", http.StatusBadRequest)
 			return
-		case err == metric.ErrValueAssign:
+		case metric.ErrValueAssign:
 			log.Println(err)
 			http.Error(w, "Wrong value", http.StatusBadRequest)
 			return
@@ -142,11 +141,11 @@ func (s *Service) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		http.Error(w, "not found", http.StatusNotFound)
 	}
+	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(&metric); err != nil {
 		http.Error(w, "unable to marshal the struct", http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
 
 }
 

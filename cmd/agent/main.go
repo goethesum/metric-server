@@ -111,6 +111,7 @@ func main() {
 				}
 				inc.Delta += 1
 				mStorage.Data["PollCount"] = inc
+				fmt.Println(mStorage.Data["PollCount"].Delta)
 			}
 		}
 	}()

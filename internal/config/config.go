@@ -60,6 +60,15 @@ func (s *Service) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request)
 		log.Printf("unable to decode params in PostHandlerMetricsJSON, %s", err)
 		return
 	}
+
+	if m.MType == metric.MetricTypeCounter {
+		id1, ok := s.Storage[m.ID]
+		if ok {
+			newDelta := id1.Delta + m.Delta
+			m.Delta = newDelta
+		}
+	}
+
 	s.Storage[m.ID] = m
 
 	if s.Server.StoreInterval == 0 {

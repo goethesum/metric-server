@@ -23,13 +23,14 @@ type clientHTTP struct {
 
 // MetricSend takes Server address and relative path from config struct
 // Calls NewSendUrl to construct encoded URL
-func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric) (*resty.Response, error) {
+func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric, tr *http.Transport) (*resty.Response, error) {
 	jsonMetric, err := json.Marshal(metrics)
 	if err != nil {
 		log.Printf("error during marshaling in MetricSend %s", err)
 	}
 
 	resp, err := client.client.SetCloseConnection(true).
+		SetTransport(tr).
 		R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonMetric).
@@ -65,7 +66,10 @@ func main() {
 		Stats: runtime.MemStats{},
 		Data:  make(map[string]metric.Metric),
 	}
-
+	transport := &http.Transport{
+		MaxIdleConns:        20,
+		MaxIdleConnsPerHost: 20,
+	}
 	// make endpoint
 	endpoint := conf.Server + conf.URLMetricPush
 	log.Println(endpoint)
@@ -125,7 +129,7 @@ func main() {
 					return
 				default:
 					time.Sleep(500 * time.Microsecond)
-					resp, err := client.MetricSend(endpoint, v)
+					resp, err := client.MetricSend(endpoint, v, transport)
 
 					if err != nil {
 						log.Println(err)

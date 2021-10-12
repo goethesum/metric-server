@@ -55,11 +55,13 @@ func main() {
 		return
 	}
 
-	confServ.Storage, err = r.RestoreMetrics()
-	if err != nil {
-		log.Fatalf("dying by...:%s", err)
+	if confServ.Restore {
+		confServ.Storage, err = r.RestoreMetrics()
+		if err != nil {
+			log.Fatalf("dying by...:%s", err)
+		}
+		r.Close()
 	}
-	r.Close()
 
 	log.Println("Starting on port:", confServ.PortNumber)
 	log.Fatal(server.ListenAndServe())

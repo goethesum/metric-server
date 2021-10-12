@@ -24,9 +24,12 @@ type ConfigAgent struct {
 }
 
 type ConfigServer struct {
-	PortNumber  string `env:"ADDRESS" envDefault:"0.0.0.0:8080"`
-	Storage     map[string]metric.Metric
-	FileStorage string `env:"FILE_STORAGE_PATH" envDefault:"./history"`
+	PortNumber    string `env:"ADDRESS" envDefault:"0.0.0.0:8080"`
+	Storage       map[string]metric.Metric
+	FileStorage   string        `env:"FILE_STORAGE_PATH" envDefault:"./history"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
+	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
+	Restore       bool          `env:"RESTORE" envDefault:"true"`
 	*sync.Mutex
 }
 
@@ -38,9 +41,12 @@ func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Re
 		return
 	}
 	cs.Storage[m.ID] = m
-	s, _ := history.NewSaver(cs.FileStorage)
-	s.WriteMetric(m)
-	defer s.Close()
+
+	if cs.StoreInterval == 0 {
+		s, _ := history.NewSaver(cs.FileStorage)
+		s.WriteMetric(m)
+		defer s.Close()
+	}
 
 }
 

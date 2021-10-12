@@ -73,6 +73,17 @@ func (s *saver) WriteMetric(savedMetric metric.Metric) error {
 	}
 	return s.writer.Flush()
 }
+func (s *saver) StoreMetrics(storage map[string]metric.Metric) error {
+	data, err := json.Marshal(&storage)
+	if err != nil {
+		return err
+	}
+	if _, err := s.writer.Write(data); err != nil {
+		return err
+	}
+
+	return s.writer.Flush()
+}
 
 func (r *restorer) RestoreMetrics() (map[string]metric.Metric, error) {
 	store := make(map[string]metric.Metric)

@@ -48,13 +48,12 @@ func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric, tr 
 
 func main() {
 
-	conf := &config.ConfigAgent{}
+	conf := config.NewConfigAgent()
 
 	// read env variable
 	if err := env.Parse(conf); err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Fatal(err)
 	}
-	fmt.Printf("%T", conf.PollInterval)
 
 	// init client
 	client := &clientHTTP{

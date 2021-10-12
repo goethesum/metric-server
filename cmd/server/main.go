@@ -23,11 +23,16 @@ var confServ *config.ConfigServer
 
 func main() {
 
+	confServ = config.NewConfigServer()
+
 	// read env variable
 	if err := env.Parse(confServ); err != nil {
 		log.Fatal(err)
 	}
-	log.Println(confServ)
+
+	log.Printf("Address: %s, Path %s, Interval %s, Restore %t", confServ.Address, confServ.StoreFile, confServ.StoreInterval, confServ.Restore)
+
+	srv = config.NewService(confServ)
 
 	// Setup service
 	srv = &config.Service{

@@ -37,6 +37,22 @@ type Service struct {
 	*sync.Mutex
 }
 
+func NewService(srv *ConfigServer) *Service {
+	return &Service{
+		Storage: make(map[string]metric.Metric),
+		Server:  *srv,
+		Mutex:   &sync.Mutex{},
+	}
+}
+
+func NewConfigServer() *ConfigServer {
+	return &ConfigServer{}
+}
+
+func NewConfigAgent() *ConfigAgent {
+	return &ConfigAgent{}
+}
+
 func (s *Service) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
 	m := metric.Metric{}
 	decoder := json.NewDecoder(r.Body)

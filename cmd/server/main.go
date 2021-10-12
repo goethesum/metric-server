@@ -18,23 +18,27 @@ import (
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
+var srv *config.Service
 var confServ *config.ConfigServer
 
 func main() {
 
-	// Setup environmet
-	confServ = &config.ConfigServer{
-		Storage: make(map[string]metric.Metric),
-		Mutex:   &sync.Mutex{},
-	}
 	// read env variable
 	if err := env.Parse(confServ); err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Fatal(err)
+	}
+	log.Println(confServ)
+
+	// Setup service
+	srv = &config.Service{
+		Storage: make(map[string]metric.Metric),
+		Mutex:   &sync.Mutex{},
+		Server:  *confServ,
 	}
 
 	server := &http.Server{
-		Addr:    confServ.PortNumber,
-		Handler: router(confServ),
+		Addr:    confServ.Address,
+		Handler: router(srv),
 	}
 
 	// Handling signal, waiting for graceful shutdown
@@ -51,24 +55,23 @@ func main() {
 	// Restore metrics from file FILE_STORAGE_PATH
 	r, err := history.NewRestorer(confServ.FileStorage)
 	if err != nil {
-		log.Printf("error during restore from file %s", err)
-		return
+		log.Fatal("error during restore from file", err)
 	}
 
 	if confServ.Restore {
-		confServ.Storage, err = r.RestoreMetrics()
+		srv.Storage, err = r.RestoreMetrics()
 		if err != nil {
 			log.Fatalf("dying by...:%s", err)
 		}
 		r.Close()
 	}
 
-	log.Println("Starting on port:", confServ.PortNumber)
+	log.Println("Starting on port:", confServ.Address)
 	log.Fatal(server.ListenAndServe())
 
 }
 
-func router(cs *config.ConfigServer) http.Handler {
+func router(s *config.Service) http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Use(
@@ -77,16 +80,16 @@ func router(cs *config.ConfigServer) http.Handler {
 	)
 
 	mux.Route("/", func(mux chi.Router) {
-		mux.Get("/", cs.GetMetricsAll)
+		mux.Get("/", s.GetMetricsAll)
 	})
 	mux.Route("/update", func(mux chi.Router) {
-		mux.Get("/", cs.GetMetricsAll)
-		mux.Post("/", cs.PostHandlerMetricsJSON)
-		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
+		mux.Get("/", s.GetMetricsAll)
+		mux.Post("/", s.PostHandlerMetricsJSON)
+		mux.Post("/{type}/{id}/{value}", s.PostHandlerMetricByURL)
 	})
 	mux.Route("/value", func(mux chi.Router) {
-		mux.Post("/", cs.POSTMetricsByValueJSON)
-		mux.Get("/{type}/{id}", cs.GetMetricsByValueURI)
+		mux.Post("/", s.POSTMetricsByValueJSON)
+		mux.Get("/{type}/{id}", s.GetMetricsByValueURI)
 	})
 
 	return mux

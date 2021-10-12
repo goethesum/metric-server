@@ -26,7 +26,7 @@ type clientHTTP struct {
 func (client *clientHTTP) MetricSend(endpoint string, metrics metric.Metric, tr *http.Transport) (*resty.Response, error) {
 	jsonMetric, err := json.Marshal(metrics)
 	if err != nil {
-		log.Printf("error during marshaling in MetricSend %s", err)
+		return nil, fmt.Errorf("error during marshaling in MetricSend %w", err)
 	}
 
 	resp, err := client.client.SetCloseConnection(true).

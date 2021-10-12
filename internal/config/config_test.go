@@ -11,7 +11,7 @@ import (
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
 )
 
-var testCs = &ConfigServer{
+var testCs = &Service{
 	Storage: map[string]metric.Metric{
 		"test": {
 			ID:    "test",
@@ -46,20 +46,20 @@ var theTestsPost = struct {
 	{key: "value", value: "3742"},
 }, http.StatusOK}
 
-func getRouter(cs *ConfigServer) http.Handler {
+func getRouter(s *Service) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/update", cs.PostHandlerMetricByURL)
-	mux.HandleFunc("/", cs.GetMetricsAll)
+	mux.HandleFunc("/update", s.PostHandlerMetricByURL)
+	mux.HandleFunc("/", s.GetMetricsAll)
 
 	return mux
 }
 
-func getRouterChi(cs *ConfigServer) http.Handler {
+func getRouterChi(s *Service) http.Handler {
 	mux := chi.NewRouter()
 	mux.Route("/update", func(mux chi.Router) {
-		mux.Get("/", cs.GetMetricsAll)
-		mux.Post("/", cs.PostHandlerMetricsJSON)
-		mux.Post("/{type}/{id}/{value}", cs.PostHandlerMetricByURL)
+		mux.Get("/", s.GetMetricsAll)
+		mux.Post("/", s.PostHandlerMetricsJSON)
+		mux.Post("/{type}/{id}/{value}", s.PostHandlerMetricByURL)
 	})
 	return mux
 }

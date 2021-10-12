@@ -41,5 +41,5 @@ func TestMetricSend(t *testing.T) {
 	if err != nil {
 		t.Errorf("throw an error during the test %s", err)
 	}
-	assert.Equal(t, 200, resp.StatusCode())
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 }

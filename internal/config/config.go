@@ -24,26 +24,30 @@ type ConfigAgent struct {
 }
 
 type ConfigServer struct {
-	PortNumber    string `env:"ADDRESS" envDefault:"0.0.0.0:8080"`
-	Storage       map[string]metric.Metric
+	Address       string        `env:"ADDRESS" envDefault:"0.0.0.0:8080"`
 	FileStorage   string        `env:"FILE_STORAGE_PATH" envDefault:"./history"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
 	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
 	Restore       bool          `env:"RESTORE" envDefault:"true"`
+}
+
+type Service struct {
+	Storage map[string]metric.Metric
+	Server  ConfigServer
 	*sync.Mutex
 }
 
-func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
+func (s *Service) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request) {
 	m := metric.Metric{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&m); err != nil {
 		log.Printf("unable to decode params in PostHandlerMetricsJSON, %s", err)
 		return
 	}
-	cs.Storage[m.ID] = m
+	s.Storage[m.ID] = m
 
-	if cs.StoreInterval == 0 {
-		s, _ := history.NewSaver(cs.FileStorage)
+	if s.Server.StoreInterval == 0 {
+		s, _ := history.NewSaver(s.Server.FileStorage)
 		s.WriteMetric(m)
 		defer s.Close()
 	}
@@ -51,7 +55,7 @@ func (cs *ConfigServer) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Re
 }
 
 // Validate and save metrics via POST URI
-func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
+func (s *Service) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Request) {
 	m, err := metric.ParseMetricEntityFromURL(r)
 	if err != nil {
 		switch {
@@ -76,18 +80,18 @@ func (cs *ConfigServer) PostHandlerMetricByURL(w http.ResponseWriter, r *http.Re
 	}
 	ID := chi.URLParam(r, "id")
 	if m.MType == metric.MetricTypeCounter {
-		id1, ok := cs.Storage[ID]
+		id1, ok := s.Storage[ID]
 		if ok {
 			newDelta := id1.Delta + m.Delta
 			m.Delta = newDelta
 		}
 	}
-	cs.Storage[ID] = m
+	s.Storage[ID] = m
 
 }
 
 // GetMetricsByValue return metrics via GET /value/{type}/{id}
-func (cs *ConfigServer) GetMetricsByValueURI(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetMetricsByValueURI(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "type")
 	if metricType != string(metric.MetricTypeGauge) && metricType != string(metric.MetricTypeCounter) {
 		log.Println("missmatched type")
@@ -95,21 +99,22 @@ func (cs *ConfigServer) GetMetricsByValueURI(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	ID := chi.URLParam(r, "id")
-	met, ok := cs.Storage[ID]
+	met, ok := s.Storage[ID]
 	if !ok {
 		http.Error(w, "not found", http.StatusNotFound)
+		return
 	}
-	switch {
-	case met.MType == metric.MetricTypeGauge:
+	switch met.MType {
+	case metric.MetricTypeGauge:
 		fmt.Fprintf(w, "%v", met.Value)
-	case met.MType == metric.MetricTypeCounter:
+	case metric.MetricTypeCounter:
 		fmt.Fprintf(w, "%v", met.Delta)
 	}
 
 }
 
 // POSTMetricsByValueJSON return metrics via JSON
-func (cs *ConfigServer) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Request) {
+func (s *Service) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Request) {
 	m := metric.Metric{}
 	enc := json.NewDecoder(r.Body)
 	if err := enc.Decode(&m); err != nil {
@@ -117,7 +122,7 @@ func (cs *ConfigServer) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Re
 		http.Error(w, "wrong format", http.StatusBadRequest)
 		return
 	}
-	metric, ok := cs.Storage[m.ID]
+	metric, ok := s.Storage[m.ID]
 	if !ok {
 		http.Error(w, "not found", http.StatusNotFound)
 	}
@@ -130,11 +135,11 @@ func (cs *ConfigServer) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Re
 }
 
 // Return metric data in JSON by Requested URI
-func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetMetrics(w http.ResponseWriter, r *http.Request) {
 
 	key := r.URL.Query().Get("id")
 
-	value, err := cs.GetMetricsByKey(context.Background(), key)
+	value, err := s.GetMetricsByKey(context.Background(), key)
 	if err != nil {
 		http.Error(w, "metric not found", http.StatusBadRequest)
 		log.Println(err)
@@ -149,18 +154,18 @@ func (cs *ConfigServer) GetMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 // Return metrics data in html
-func (cs *ConfigServer) GetMetricsAll(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetMetricsAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	for _, v := range cs.Storage {
+	for _, v := range s.Storage {
 		fmt.Fprintf(w, "%v<br>", v)
 	}
 }
 
-func (cs *ConfigServer) GetMetricsByKey(ctx context.Context, key string) (metric.Metric, error) {
-	cs.Lock()
-	defer cs.Unlock()
+func (s *Service) GetMetricsByKey(ctx context.Context, key string) (metric.Metric, error) {
+	s.Lock()
+	defer s.Unlock()
 
-	m, ok := cs.Storage[key]
+	m, ok := s.Storage[key]
 	if !ok {
 		return metric.Metric{}, errors.New("metric not found")
 	}

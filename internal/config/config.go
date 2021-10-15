@@ -25,10 +25,9 @@ type ConfigAgent struct {
 
 type ConfigServer struct {
 	Address       string        `env:"ADDRESS" envDefault:"0.0.0.0:8080"`
-	FileStorage   string        `env:"FILE_STORAGE_PATH" envDefault:"./history"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
 	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" envDefault:"true"`
+	Restore       bool          `env:"RESTORE" envDefault:"false"`
 }
 
 type Service struct {
@@ -72,7 +71,7 @@ func (s *Service) PostHandlerMetricsJSON(w http.ResponseWriter, r *http.Request)
 	s.Storage[m.ID] = m
 
 	if s.Server.StoreInterval == 0 {
-		s, _ := history.NewSaver(s.Server.FileStorage)
+		s, _ := history.NewSaver(s.Server.StoreFile)
 		s.WriteMetric(m)
 		defer s.Close()
 	}
@@ -144,6 +143,10 @@ func (s *Service) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Request)
 	if err := enc.Decode(&m); err != nil {
 		log.Println(err)
 		http.Error(w, "wrong format", http.StatusBadRequest)
+		return
+	}
+	if m.MType != metric.MetricTypeGauge && m.MType != metric.MetricTypeCounter {
+		log.Println("missmatched type")
 		return
 	}
 	metric, ok := s.Storage[m.ID]

@@ -3,6 +3,7 @@ package history
 import (
 	"bufio"
 	"encoding/json"
+	"log"
 	"os"
 
 	metric "github.com/goethesum/-go-musthave-devops-tpl/internal/metrics"
@@ -76,9 +77,11 @@ func (s *saver) WriteMetric(savedMetric metric.Metric) error {
 func (s *saver) StoreMetrics(storage map[string]metric.Metric) error {
 	data, err := json.Marshal(&storage)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if _, err := s.writer.Write(data); err != nil {
+		log.Println(err)
 		return err
 	}
 

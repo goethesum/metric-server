@@ -57,19 +57,36 @@ func main() {
 		}
 
 	}()
-	// Restore metrics from file FILE_STORAGE_PATH
-	r, err := history.NewRestorer(confServ.FileStorage)
-	if err != nil {
-		log.Fatal("error during restore from file", err)
-	}
-
+	// Restore metrics from STOREFILE
 	if confServ.Restore {
+		r, err := history.NewRestorer(confServ.StoreFile)
+		if err != nil {
+			log.Println("nothing to restore", err)
+		}
+
 		srv.Storage, err = r.RestoreMetrics()
 		if err != nil {
 			log.Fatalf("dying by...:%s", err)
 		}
 		r.Close()
 	}
+
+	// if int64(confServ.StoreInterval) > 0 {
+	// 	go func() {
+	// 		tck := time.NewTicker(confServ.StoreInterval)
+
+	// 		select {
+	// 		case <-sigCh:
+	// 			tck.Stop()
+	// 			return
+	// 		case <-tck.C:
+	// 			s, _ := history.NewSaver(srv.Server.StoreFile)
+	// 			s.StoreMetrics(srv.Storage)
+	// 			defer s.Close()
+	// 		}
+
+	// 	}()
+	// }
 
 	log.Println("Starting on port:", confServ.Address)
 	log.Fatal(server.ListenAndServe())

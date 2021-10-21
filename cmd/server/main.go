@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -24,6 +25,15 @@ var confServ *config.ConfigServer
 func main() {
 
 	confServ = config.NewConfigServer()
+
+	flag.StringVar(&confServ.Address, "a", "localhost:8080", "server address")
+	flag.BoolVar(&confServ.Restore, "r", false, "true or false for restore from file")
+	flag.DurationVar(&confServ.StoreInterval, "i", 300, "Interval in seconds between file savings")
+	flag.StringVar(&confServ.StoreFile, "f", "/tmp/devops-metrics-db.json", "file path")
+
+	// flag parsing
+	flag.Parse()
+	confServ.StoreFile = flag.Arg(0)
 
 	// read env variable
 	if err := env.Parse(confServ); err != nil {

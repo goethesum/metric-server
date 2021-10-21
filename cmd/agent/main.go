@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -50,6 +51,10 @@ func main() {
 
 	conf := config.NewConfigAgent()
 
+	flag.StringVar(&conf.Address, "a", "localhost:8080", "server address")
+	flag.DurationVar(&conf.ReportInterval, "r", 10, "duration of Report Interval")
+	flag.DurationVar(&conf.PollInterval, "i", 2, "duration of Poll Interval")
+
 	// read env variable
 	if err := env.Parse(conf); err != nil {
 		log.Fatal(err)
@@ -70,7 +75,7 @@ func main() {
 		MaxIdleConnsPerHost: 20,
 	}
 	// make endpoint
-	endpoint := conf.Server + conf.URLMetricPush
+	endpoint := conf.Address + conf.URLMetricPush
 	log.Println(endpoint)
 	// Create Ticker for populating
 	tickPoll := time.NewTicker(conf.PollInterval)

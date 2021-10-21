@@ -17,17 +17,17 @@ import (
 )
 
 type ConfigAgent struct {
-	Server         string        `env:"ADDRESS" envDefault:"http://localhost:8080"`
+	Address        string        `env:"ADDRESS"`
 	URLMetricPush  string        `env:"URL_PATH" envDefault:"/update"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 }
 
 type ConfigServer struct {
-	Address       string        `env:"ADDRESS" envDefault:"0.0.0.0:8080"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
-	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" envDefault:"false"`
+	Address       string        `env:"ADDRESS"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+	StoreFile     string        `env:"STORE_FILE"`
+	Restore       bool          `env:"RESTORE"`
 }
 
 type Service struct {
@@ -147,6 +147,7 @@ func (s *Service) POSTMetricsByValueJSON(w http.ResponseWriter, r *http.Request)
 	}
 	if m.MType != metric.MetricTypeGauge && m.MType != metric.MetricTypeCounter {
 		log.Println("missmatched type")
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 	metric, ok := s.Storage[m.ID]
@@ -199,3 +200,5 @@ func (s *Service) GetMetricsByKey(ctx context.Context, key string) (metric.Metri
 	return m, nil
 
 }
+
+// curl -X POST http://localhost:8080/value -H 'Content-Type: application/json' -d '{"id":"BuckHashSys","type":"gauge"}'

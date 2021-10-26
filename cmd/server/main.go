@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
@@ -28,7 +29,7 @@ func main() {
 
 	flag.StringVar(&confServ.Address, "a", "localhost:8080", "server address")
 	flag.BoolVar(&confServ.Restore, "r", false, "true or false for restore from file")
-	flag.DurationVar(&confServ.StoreInterval, "i", 300, "Interval in seconds between file savings")
+	flag.DurationVar(&confServ.StoreInterval, "i", 300*time.Second, "Interval in seconds between file savings")
 	flag.StringVar(&confServ.StoreFile, "f", "/tmp/devops-metrics-db.json", "file path")
 
 	// flag parsing

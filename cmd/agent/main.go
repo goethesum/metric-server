@@ -51,9 +51,9 @@ func main() {
 
 	conf := config.NewConfigAgent()
 
-	flag.StringVar(&conf.Address, "a", "localhost:8080", "server address")
-	flag.DurationVar(&conf.ReportInterval, "r", 10, "duration of Report Interval")
-	flag.DurationVar(&conf.PollInterval, "i", 2, "duration of Poll Interval")
+	flag.StringVar(&conf.Address, "a", "http://localhost:8080", "server address")
+	flag.DurationVar(&conf.ReportInterval, "r", 10*time.Second, "duration of Report Interval")
+	flag.DurationVar(&conf.PollInterval, "i", 2*time.Second, "duration of Poll Interval")
 
 	// read env variable
 	if err := env.Parse(conf); err != nil {
@@ -116,7 +116,7 @@ func main() {
 				}
 				inc.Delta += 1
 				mStorage.Data["PollCount"] = inc
-				fmt.Println(mStorage.Data["PollCount"].Delta)
+
 			}
 		}
 	}()

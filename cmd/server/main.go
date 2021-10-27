@@ -82,22 +82,22 @@ func main() {
 		r.Close()
 	}
 
-	// if int64(confServ.StoreInterval) > 0 {
-	// 	go func() {
-	// 		tck := time.NewTicker(confServ.StoreInterval)
+	if int64(confServ.StoreInterval) > 0 {
+		go func() {
+			tck := time.NewTicker(confServ.StoreInterval)
 
-	// 		select {
-	// 		case <-sigCh:
-	// 			tck.Stop()
-	// 			return
-	// 		case <-tck.C:
-	// 			s, _ := history.NewSaver(srv.Server.StoreFile)
-	// 			s.StoreMetrics(srv.Storage)
-	// 			defer s.Close()
-	// 		}
+			select {
+			case <-sigCh:
+				tck.Stop()
+				return
+			case <-tck.C:
+				s, _ := history.NewSaver(srv.Server.StoreFile)
+				s.StoreMetrics(&srv.Storage)
+				defer s.Close()
+			}
 
-	// 	}()
-	// }
+		}()
+	}
 
 	log.Println("Starting on port:", confServ.Address)
 	log.Fatal(server.ListenAndServe())

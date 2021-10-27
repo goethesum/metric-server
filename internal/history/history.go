@@ -3,6 +3,7 @@ package history
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 
@@ -74,13 +75,14 @@ func (s *saver) WriteMetric(savedMetric metric.Metric) error {
 	}
 	return s.writer.Flush()
 }
-func (s *saver) StoreMetrics(storage map[string]metric.Metric) error {
+func (s *saver) StoreMetrics(storage *map[string]metric.Metric) error {
 	data, err := json.Marshal(&storage)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	if _, err := s.writer.Write(data); err != nil {
+	fmt.Println(data)
+	if _, err := s.file.Write(data); err != nil {
 		log.Println(err)
 		return err
 	}

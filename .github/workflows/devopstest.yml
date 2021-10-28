@@ -212,7 +212,7 @@ jobs:
             -binary-path=cmd/server/server \
             -server-port=$SERVER_PORT \
             -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -file-storage-path=$TEMP_FILE
+
 
 # VII. Задание к седьмому инкременту.
 # Доработать код, что бы он умел принимать аргументы с использованием флагов.
@@ -239,7 +239,7 @@ jobs:
             -binary-path=cmd/server/server \
             -server-port=$SERVER_PORT \
             -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -file-storage-path=$TEMP_FILE
+
 
 # VIII. Задание к восьмому инкременту.
 # Доработать код сервера, для реализации механизма cжатия данных сервером в формате gzip
@@ -257,7 +257,6 @@ jobs:
             -binary-path=cmd/server/server \
             -server-port=$SERVER_PORT \
             -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -file-storage-path=$TEMP_FILE
 
 # IX. Задание к девятому инкременту.
 # Внимание: это учебный пример, в котором сделан акцент на закреплении пройденной темы,
@@ -395,3 +394,43 @@ jobs:
 #   * Имя метрики: "TotalMemory", тип: gauge
 #   * Имя метрики: "FreeMemory", тип: gauge
 #   * Имя метрики: "CPUutilization1", тип: gauge (точное количество - по числу CPU определяемое во время исполнения)
+=======
+            -key="${TEMP_FILE}"
+
+      # - name: "Code increment #9"
+      #   if: always()
+      #   run: |
+      #     devopstest -test.v -test.run=^TestIteration9$ \
+      #         -source-path=. \
+      #         -binary-path=cmd/server/server \
+      #         -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+
+      # - name: "Code increment #10"
+      #   if: always()
+      #   run: |
+      #     devopstest -test.v -test.run=^TestIteration10$ \
+      #         -source-path=. \
+      #         -binary-path=cmd/server/server \
+      #         -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+
+      # - name: "Code increment #11"
+      #   if: always()
+      #   run: |
+      #     devopstest -test.v -test.run=^TestIteration11$ \
+      #         -binary-path=cmd/server/server \
+      #         -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+
+      # - name: "Code increment #12"
+      #   if: always()
+      #   run: |
+      #     devopstest -test.v -test.run=^TestIteration12$ \
+      #         -binary-path=cmd/server/server \
+      #         -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+
+      # - name: "Code increment #13"
+      #   if: always()
+      #   run: |
+      #     devopstest -test.v -test.run=^TestIteration13$ \
+      #         -binary-path=cmd/server/server \
+      #         -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+

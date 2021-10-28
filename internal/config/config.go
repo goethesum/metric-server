@@ -19,8 +19,8 @@ import (
 type ConfigAgent struct {
 	Address        string        `env:"ADDRESS"`
 	URLMetricPush  string        `env:"URL_PATH" envDefault:"/update"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 }
 
 type ConfigServer struct {
